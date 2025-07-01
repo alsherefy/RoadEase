@@ -1,19 +1,30 @@
 [Setup]
 AppName=RoadEase
-AppVersion=1.0
+AppVersion=1.0.2
 DefaultDirName={pf}\RoadEase
 DefaultGroupName=RoadEase
-OutputDir=Output
-OutputBaseFilename=Setup
+UninstallDisplayIcon={app}\main.exe
+OutputDir=dist
+OutputBaseFilename=RoadEaseSetup
 Compression=lzma
 SolidCompression=yes
+WizardImageFile=roadease_logo.bmp
+SetupIconFile=roadease_logo.bmp
+LicenseFile=license.txt
 
-[Files]
-Source: "dist\RoadEase.exe"; DestDir: "{app}"; Flags: ignoreversion
-
-[Icons]
-Name: "{group}\RoadEase"; Filename: "{app}\RoadEase.exe"
-Name: "{commondesktop}\RoadEase"; Filename: "{app}\RoadEase.exe"; Tasks: desktopicon
+[Languages]
+Name: "english"; MessagesFile: "compiler:Default.isl"
+Name: "arabic"; MessagesFile: "compiler:Languages\Arabic.isl"
 
 [Tasks]
-Name: desktopicon; Description: "Create a &desktop icon"; GroupDescription: "Additional icons:"; Flags: unchecked
+Name: "desktopicon"; Description: "Create a &desktop icon"; GroupDescription: "Additional icons:"
+
+[Files]
+Source: "dist\RoadEase\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+[Icons]
+Name: "{group}\RoadEase"; Filename: "{app}\main.exe"
+Name: "{commondesktop}\RoadEase"; Filename: "{app}\main.exe"; Tasks: desktopicon
+
+[Run]
+Filename: "{app}\main.exe"; Description: "Launch RoadEase"; Flags: nowait postinstall skipifsilent
