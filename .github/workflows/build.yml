@@ -27,12 +27,8 @@ jobs:
           pip install pyinstaller
 
       - name: Build EXE
-        run: |
-          pyinstaller main.py --noconfirm --clean --onedir \
-            --add-data "ui;ui" \
-            --add-data "database;database" \
-            --add-data "assets;assets" \
-            --name RoadEase
+        run: >
+          pyinstaller main.py --noconfirm --clean --onedir --add-data "ui;ui" --add-data "database;database" --add-data "assets;assets" --name RoadEase
 
       - name: Upload EXE to GitHub Releases
         uses: softprops/action-gh-release@v2
