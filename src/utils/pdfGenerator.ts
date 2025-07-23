@@ -1,89 +1,158 @@
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
-import { Invoice, Customer } from '../types';
+import { Invoice, Customer, Settings } from '../types';
 
-export const generateInvoicePDF = async (invoice: Invoice, customer: Customer, settings?: any) => {
+export const generateInvoicePDF = async (invoice: Invoice, customer: Customer, settings: Settings) => {
   try {
-    // Create a new jsPDF instance
+    // Create a new jsPDF instance with A4 size
     const pdf = new jsPDF('p', 'mm', 'a4');
     
     // Set up fonts and colors
     pdf.setFont('helvetica');
     
-    // Header
+    // Header - Company Info
     pdf.setFontSize(20);
     pdf.setTextColor(40, 40, 40);
-    pdf.text('فاتورة', 105, 20, { align: 'center' });
+    pdf.text(settings.workshopName || 'ROAD EASE', 105, 20, { align: 'center' });
     
-    // Company info (if available in settings)
-    if (settings?.companyName) {
-      pdf.setFontSize(14);
-      pdf.text(settings.companyName, 20, 35);
-    }
-    
-    // Invoice details
     pdf.setFontSize(12);
-    pdf.text(`رقم الفاتورة: ${invoice.invoiceNumber}`, 20, 50);
-    pdf.text(`تاريخ الإصدار: ${invoice.issueDate}`, 20, 60);
-    pdf.text(`تاريخ الاستحقاق: ${invoice.dueDate}`, 20, 70);
-    
-    // Customer info
-    pdf.text('بيانات العميل:', 20, 90);
-    pdf.text(`الاسم: ${customer.name}`, 20, 100);
-    pdf.text(`الهاتف: ${customer.phone}`, 20, 110);
-    if (customer.email) {
-      pdf.text(`البريد الإلكتروني: ${customer.email}`, 20, 120);
+    pdf.setTextColor(100, 100, 100);
+    if (settings.address) {
+      pdf.text(settings.address, 105, 30, { align: 'center' });
     }
+    if (settings.phone) {
+      pdf.text(`Tel: ${settings.phone}`, 105, 37, { align: 'center' });
+    }
+    if (settings.email) {
+      pdf.text(`Email: ${settings.email}`, 105, 44, { align: 'center' });
+    }
+    if (settings.taxNumber) {
+      pdf.text(`Tax No: ${settings.taxNumber}`, 105, 51, { align: 'center' });
+    }
+    
+    // Invoice Title
+    pdf.setFontSize(18);
+    pdf.setTextColor(40, 40, 40);
+    pdf.text('INVOICE / فاتورة', 105, 65, { align: 'center' });
+    
+    // Invoice Details
+    pdf.setFontSize(11);
+    pdf.setTextColor(60, 60, 60);
+    
+    // Left side - Invoice info
+    pdf.text(`Invoice No: ${invoice.invoiceNumber}`, 20, 80);
+    pdf.text(`Issue Date: ${new Date(invoice.issueDate).toLocaleDateString()}`, 20, 87);
+    pdf.text(`Due Date: ${new Date(invoice.dueDate).toLocaleDateString()}`, 20, 94);
     
     // Payment method
-    const paymentMethodText = getPaymentMethodText(invoice.paymentMethod);
-    pdf.text(`طريقة الدفع: ${paymentMethodText}`, 20, 130);
+    const paymentMethodText = getPaymentMethodText(invoice.paymentMethod || 'cash');
+    pdf.text(`Payment Method: ${paymentMethodText}`, 20, 101);
     
-    // Items table header
-    let yPosition = 150;
-    pdf.setFillColor(240, 240, 240);
-    pdf.rect(20, yPosition, 170, 10, 'F');
-    pdf.text('الصنف', 25, yPosition + 7);
-    pdf.text('الكمية', 80, yPosition + 7);
-    pdf.text('السعر', 120, yPosition + 7);
-    pdf.text('المجموع', 160, yPosition + 7);
+    // Payment status
+    const statusText = getPaymentStatusText(invoice.paymentStatus);
+    pdf.text(`Status: ${statusText}`, 20, 108);
     
-    // Items
-    yPosition += 15;
-    invoice.items.forEach((item, index) => {
-      const itemTotal = item.quantity * item.price;
-      pdf.text(`صنف ${index + 1}`, 25, yPosition);
-      pdf.text(item.quantity.toString(), 80, yPosition);
-      pdf.text(`${item.price.toFixed(2)} ريال`, 120, yPosition);
-      pdf.text(`${itemTotal.toFixed(2)} ريال`, 160, yPosition);
-      yPosition += 10;
-    });
-    
-    // Totals
-    yPosition += 10;
-    pdf.line(20, yPosition, 190, yPosition);
-    yPosition += 10;
-    
-    pdf.text(`المجموع الفرعي: ${invoice.subtotal.toFixed(2)} ريال`, 120, yPosition);
-    yPosition += 10;
-    pdf.text(`الضريبة (15%): ${invoice.tax.toFixed(2)} ريال`, 120, yPosition);
-    yPosition += 10;
-    pdf.setFontSize(14);
-    pdf.text(`المجموع الكلي: ${invoice.total.toFixed(2)} ريال`, 120, yPosition);
-    
-    // Notes
-    if (invoice.notes) {
-      yPosition += 20;
-      pdf.setFontSize(12);
-      pdf.text('ملاحظات:', 20, yPosition);
-      yPosition += 10;
-      pdf.text(invoice.notes, 20, yPosition);
+    // Right side - Customer info
+    pdf.text('Bill To:', 120, 80);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text(customer.name, 120, 87);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(`Phone: ${customer.phone}`, 120, 94);
+    if (customer.email) {
+      pdf.text(`Email: ${customer.email}`, 120, 101);
+    }
+    if (customer.address) {
+      pdf.text(`Address: ${customer.address}`, 120, 108);
     }
     
-    // Status
-    yPosition += 20;
-    const statusText = getStatusText(invoice.status);
-    pdf.text(`حالة الفاتورة: ${statusText}`, 20, yPosition);
+    // Items table
+    let yPosition = 125;
+    
+    // Table header
+    pdf.setFillColor(240, 240, 240);
+    pdf.rect(20, yPosition, 170, 8, 'F');
+    
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(10);
+    pdf.text('Description', 25, yPosition + 5);
+    pdf.text('Qty', 110, yPosition + 5);
+    pdf.text('Unit Price', 130, yPosition + 5);
+    pdf.text('Total', 165, yPosition + 5);
+    
+    // Table items
+    pdf.setFont('helvetica', 'normal');
+    yPosition += 12;
+    
+    invoice.items.forEach((item, index) => {
+      if (yPosition > 250) {
+        pdf.addPage();
+        yPosition = 20;
+      }
+      
+      pdf.text(item.description, 25, yPosition);
+      pdf.text(item.quantity.toString(), 110, yPosition);
+      pdf.text(`${item.unitPrice.toFixed(2)} ${settings.currency}`, 130, yPosition);
+      pdf.text(`${item.total.toFixed(2)} ${settings.currency}`, 165, yPosition);
+      
+      yPosition += 7;
+    });
+    
+    // Totals section
+    yPosition += 10;
+    const totalsX = 130;
+    
+    // Draw line above totals
+    pdf.line(20, yPosition, 190, yPosition);
+    yPosition += 8;
+    
+    // Subtotal
+    pdf.text('Subtotal:', totalsX, yPosition);
+    pdf.text(`${invoice.subtotal.toFixed(2)} ${settings.currency}`, 165, yPosition);
+    yPosition += 7;
+    
+    // Discount (if any)
+    if (invoice.discount && invoice.discount > 0) {
+      pdf.text(`Discount (${invoice.discount}%):`, totalsX, yPosition);
+      pdf.text(`-${(invoice.discountAmount || 0).toFixed(2)} ${settings.currency}`, 165, yPosition);
+      yPosition += 7;
+    }
+    
+    // VAT
+    const vatPercentage = (settings.vatRate * 100).toFixed(1);
+    pdf.text(`VAT (${vatPercentage}%):`, totalsX, yPosition);
+    pdf.text(`${invoice.vatAmount.toFixed(2)} ${settings.currency}`, 165, yPosition);
+    yPosition += 7;
+    
+    // Total
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(12);
+    pdf.text('Total Amount:', totalsX, yPosition);
+    pdf.text(`${invoice.totalAmount.toFixed(2)} ${settings.currency}`, 165, yPosition);
+    
+    // Notes (if any)
+    if (invoice.notes) {
+      yPosition += 15;
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(10);
+      pdf.text('Notes:', 20, yPosition);
+      yPosition += 7;
+      
+      // Split notes into multiple lines if needed
+      const noteLines = pdf.splitTextToSize(invoice.notes, 170);
+      pdf.text(noteLines, 20, yPosition);
+    }
+    
+    // Footer
+    const footerY = 280;
+    pdf.setFontSize(9);
+    pdf.setTextColor(120, 120, 120);
+    
+    if (settings.invoiceSettings?.footer) {
+      pdf.text(settings.invoiceSettings.footer, 105, footerY, { align: 'center' });
+    }
+    
+    if (settings.invoiceSettings?.terms) {
+      pdf.text(settings.invoiceSettings.terms, 105, footerY + 7, { align: 'center' });
+    }
     
     // Save the PDF
     pdf.save(`invoice-${invoice.invoiceNumber}.pdf`);
@@ -96,19 +165,18 @@ export const generateInvoicePDF = async (invoice: Invoice, customer: Customer, s
 
 const getPaymentMethodText = (method: string): string => {
   switch (method) {
-    case 'cash': return 'نقداً';
-    case 'mada': return 'بطاقة مدى';
-    case 'visa': return 'فيزا';
-    default: return 'نقداً';
+    case 'cash': return 'Cash / نقداً';
+    case 'mada': return 'Mada Card / بطاقة مدى';
+    case 'visa': return 'Visa Card / فيزا';
+    default: return 'Cash / نقداً';
   }
 };
 
-const getStatusText = (status: string): string => {
+const getPaymentStatusText = (status: string): string => {
   switch (status) {
-    case 'draft': return 'مسودة';
-    case 'sent': return 'مرسلة';
-    case 'paid': return 'مدفوعة';
-    case 'overdue': return 'متأخرة';
-    default: return 'مسودة';
+    case 'paid': return 'Paid / مدفوع';
+    case 'partial': return 'Partial / جزئي';
+    case 'unpaid': return 'Unpaid / غير مدفوع';
+    default: return 'Unpaid / غير مدفوع';
   }
 };
