@@ -1,206 +1,111 @@
-import React from 'react';
-import { Users, Car, Wrench, DollarSign, TrendingUp, AlertTriangle } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useLanguage } from '../contexts/LanguageContext';
-import { useApp } from '../contexts/AppContext';
-import { Card, CardHeader, CardContent, CardTitle } from '../components/UI/Card';
-
-const Dashboard: React.FC = () => {
-  const { t } = useLanguage();
-  const { dashboardStats } = useApp();
-
-  const monthNames = [
-    'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-    'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
-  ];
-
-  const chartData = dashboardStats.monthlyRevenue.map((revenue, index) => ({
-    month: monthNames[index],
-    revenue: revenue,
-  }));
-
-  const statCards = [
-    {
-      title: t('totalCustomers'),
-      value: dashboardStats.totalCustomers,
-      icon: Users,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-100'
-    },
-    {
-      title: t('totalCars'),
-      value: dashboardStats.totalCars,
-      icon: Car,
-      color: 'text-green-600',
-      bgColor: 'bg-green-100'
-    },
-    {
-      title: t('openOrders'),
-      value: dashboardStats.openOrders,
-      icon: Wrench,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-100'
-    },
-    {
-      title: t('todayRevenue'),
-      value: `${dashboardStats.todayRevenue.toLocaleString()} ريال`,
-      icon: DollarSign,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-100'
-    }
-  ];
-
-  return (
-    <div className="space-y-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">مرحباً بك في ROAD EASE</h1>
-        <p className="text-gray-600 mt-2">إدارة شاملة لورشة السيارات</p>
-      </div>
-
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-        {statCards.map((stat, index) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={index} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4 lg:p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs lg:text-sm font-medium text-gray-600">{stat.title}</p>
-                    <p className="text-lg lg:text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
-                  </div>
-                  <div className={`${stat.bgColor} p-3 rounded-full`}>
-                    <Icon className={`h-4 w-4 lg:h-6 lg:w-6 ${stat.color}`} />
-                  </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+          <p className="text-gray-600 text-sm lg:text-base">إدارة شاملة لورشة السيارات</p>
+                <div className="text-center py-8">
+                  <Package className="h-12 w-12 text-green-300 mx-auto mb-2" />
+                  <p className="text-green-600 font-medium">جميع العناصر متوفرة بكميات كافية</p>
                 </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+            <Card key={index} className="hover:shadow-lg transition-all duration-300 border-r-4 border-orange-500">
+        <div className="text-center lg:text-right">
+import { LanguageProvider } from './contexts/LanguageContext';
+                    <p className="text-xs lg:text-sm font-medium text-gray-600 mb-1">{stat.title}</p>
+import { AppProvider } from './contexts/AppContext';
+                    <p className="text-lg lg:text-2xl font-bold text-gray-900">{stat.value}</p>
+        <Card className="shadow-lg border-0">
+                  <div className={`${stat.bgColor} p-3 rounded-full shadow-sm`}>
+            <CardTitle className="flex items-center text-lg lg:text-xl">
+import ServiceOrders from './pages/ServiceOrders';
+import Inventory from './pages/Inventory';
+import Invoices from './pages/Invoices';
+import Expenses from './pages/Expenses';
+import Reports from './pages/Reports';
+import Employees from './pages/Employees';
+import Payroll from './pages/Payroll';
+                <div key={order.id} className="p-3 lg:p-4 border border-gray-200 rounded-lg bg-gradient-to-r from-gray-50 to-gray-100 hover:shadow-md transition-shadow">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
+import Settings from './pages/Settings';
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium shadow-sm ${
+
+            <CardTitle className="flex items-center text-lg lg:text-xl">
+  const { user, isLoading } = useAuth();
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+            <ResponsiveContainer width="100%" height={280}>
+                  <p className="text-xs lg:text-sm text-gray-600 mt-2 flex items-center">
+                    <Wrench className="h-3 w-3 mr-1" />
+        </div>
+                <XAxis dataKey="month" fontSize={12} />
       </div>
-
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        {/* Revenue Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <TrendingUp className="h-5 w-5 mr-2 text-orange-500" />
-              {t('monthlyRevenue')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip formatter={(value) => [`${value} ريال`, 'الإيرادات']} />
-                <Bar dataKey="revenue" fill="#F97316" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Top Customers */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Users className="h-5 w-5 mr-2 text-orange-500" />
-              {t('topCustomers')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {dashboardStats.topCustomers.slice(0, 5).map((customer, index) => (
-                <div key={index} className="flex items-center justify-between p-2 lg:p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-6 h-6 lg:w-8 lg:h-8 bg-orange-500 rounded-full flex items-center justify-center">
-                      <span className="text-white font-medium text-xs lg:text-sm">
-                        {customer.name.charAt(0)}
-                      </span>
-                    </div>
-                    <span className="font-medium text-gray-900 text-sm lg:text-base">{customer.name}</span>
-                  </div>
-                  <span className="font-bold text-green-600 text-sm lg:text-base">
-                    {customer.amount.toLocaleString()} ريال
-                  </span>
+  }
+                <Bar dataKey="revenue" fill="#F97316" radius={[4, 4, 0, 0]} />
+                <div className="text-center py-8">
+                  <Wrench className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                  <p className="text-gray-500">لا توجد طلبات حديثة</p>
                 </div>
-              ))}
-              {dashboardStats.topCustomers.length === 0 && (
-                <p className="text-gray-500 text-center py-4">لا توجد بيانات متاحة</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+    return <Navigate to="/login" replace />;
+  }
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        {/* Low Stock Alert */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <AlertTriangle className="h-5 w-5 mr-2 text-red-500" />
-              {t('lowStock')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {dashboardStats.lowStockItems.map((item) => (
-                <div key={item.id} className="flex items-center justify-between p-2 lg:p-3 border border-red-200 rounded-lg bg-red-50">
-                  <div>
-                    <p className="font-medium text-gray-900 text-sm lg:text-base">{item.name}</p>
-                    <p className="text-xs lg:text-sm text-gray-600">{item.partNumber}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-red-600 text-sm lg:text-base">{item.quantity}</p>
-                    <p className="text-xs text-gray-500">الحد الأدنى: {item.minQuantity}</p>
-                  </div>
-                </div>
-              ))}
-              {dashboardStats.lowStockItems.length === 0 && (
-                <p className="text-green-600 text-center py-4">جميع العناصر متوفرة بكميات كافية</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Recent Orders */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Wrench className="h-5 w-5 mr-2 text-orange-500" />
-              {t('recentOrders')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {dashboardStats.recentOrders.map((order) => (
-                <div key={order.id} className="p-2 lg:p-3 border border-gray-200 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <p className="font-medium text-gray-900 text-sm lg:text-base">{order.description}</p>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      order.status === 'open' ? 'bg-yellow-100 text-yellow-800' :
-                      order.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
-                      'bg-green-100 text-green-800'
-                    }`}>
-                      {order.status === 'open' ? 'مفتوح' : 
-                       order.status === 'in_progress' ? 'تحت التنفيذ' : 'مكتمل'}
-                    </span>
-                  </div>
-                  <p className="text-xs lg:text-sm text-gray-600 mt-1">
-                    الفني: {order.assignedTechnician || 'غير محدد'}
-                  </p>
-                </div>
-              ))}
-              {dashboardStats.recentOrders.length === 0 && (
-                <p className="text-gray-500 text-center py-4">لا توجد طلبات حديثة</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
+  return <Layout>{children}</Layout>;
 };
+        <Card className="shadow-lg border-0">
 
-export default Dashboard;
+            <CardTitle className="flex items-center text-lg lg:text-xl">
+  return (
+      <Route path="/login" element={<Login />} />
+      <Route path="/dashboard" element={
+        <ProtectedRoute>
+          <Dashboard />
+        </ProtectedRoute>
+      } />
+                <div key={index} className="flex items-center justify-between p-3 lg:p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg hover:shadow-md transition-shadow">
+          <Expenses />
+                    <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center shadow-sm">
+      } />
+        <ProtectedRoute>
+          <Reports />
+        </ProtectedRoute>
+      } />
+      <Route path="/employees" element={
+                  <span className="font-bold text-green-600 text-sm lg:text-base bg-green-50 px-2 py-1 rounded">
+        <ProtectedRoute>
+        </ProtectedRoute>
+      } />
+      <Route path="/payroll" element={
+    <div className="space-y-6 p-4 lg:p-6">
+                <div className="text-center py-8">
+          <Payroll />
+                  <Users className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+      } />
+                  <p className="text-gray-500">لا توجد بيانات متاحة</p>
+      <Route path="/forecast" element={
+                </div>
+        <ProtectedRoute>
+          <Forecast />
+        </ProtectedRoute>
+      } />
+      <Route path="/settings" element={
+        <ProtectedRoute>
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
+          <Settings />
+        <Card className="shadow-lg border-0">
+      } />
+            <CardTitle className="flex items-center text-lg lg:text-xl">
+    </Routes>
+}
+
+function App() {
+  return (
+    <LanguageProvider>
+      <AuthProvider>
+                <div key={item.id} className="flex items-center justify-between p-3 lg:p-4 border border-red-200 rounded-lg bg-gradient-to-r from-red-50 to-red-100 hover:shadow-md transition-shadow">
+        <AppProvider>
+            <AppRoutes />
+          </Router>
+        </AppProvider>
+                    <p className="font-bold text-red-600 text-sm lg:text-base bg-white px-2 py-1 rounded">{item.quantity}</p>
+      </AuthProvider>
+                    <p className="text-xs text-gray-500 mt-1">الحد الأدنى: {item.minQuantity}</p>
+}
+
+export default App;
