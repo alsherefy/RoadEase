@@ -27,24 +27,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { t, dir } = useLanguage();
   const { user } = useAuth();
 
+  // Only show dashboard
   const menuItems = [
-    { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard'), permission: null },
-    { path: '/customers', icon: Users, label: t('customers'), permission: 'customers' },
-    { path: '/service-orders', icon: Wrench, label: t('serviceOrders'), permission: 'serviceOrders' },
-    { path: '/inventory', icon: Package, label: t('inventory'), permission: 'inventory' },
-    { path: '/invoices', icon: FileText, label: t('invoices'), permission: 'invoices' },
-    { path: '/expenses', icon: DollarSign, label: t('expenses'), permission: 'expenses' },
-    { path: '/reports', icon: BarChart3, label: t('reports'), permission: 'reports' },
-    { path: '/payroll', icon: Wallet, label: 'الرواتب', permission: 'payroll' },
-    { path: '/forecast', icon: TrendingUp, label: 'التوقعات المالية', permission: 'financialReports' },
-    { path: '/employees', icon: UserCog, label: t('employees'), permission: 'employees' },
-    { path: '/settings', icon: Settings, label: t('settings'), permission: 'settings' },
+    { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard'), permission: null }
   ];
-
-  const filteredMenuItems = menuItems.filter(item => {
-    if (!item.permission) return true; // Dashboard is always accessible
-    return user?.permissions?.[item.permission as keyof typeof user.permissions] || false;
-  });
 
   return (
     <div className={`fixed top-0 h-full w-64 bg-gray-900 text-white shadow-lg z-50 transform transition-transform duration-300 ${
@@ -67,7 +53,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       
       <nav className="mt-6">
         <div className="space-y-1 px-3">
-          {filteredMenuItems.map((item) => {
+          {menuItems.map((item) => {
             const Icon = item.icon;
             return (
               <NavLink
