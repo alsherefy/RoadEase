@@ -14,6 +14,8 @@ import Invoices from './pages/Invoices';
 import Expenses from './pages/Expenses';
 import Reports from './pages/Reports';
 import Employees from './pages/Employees';
+import Payroll from './pages/Payroll';
+import Forecast from './pages/Forecast';
 import Settings from './pages/Settings';
 import Layout from './components/Layout/Layout';
 
@@ -80,6 +82,16 @@ function AppRoutes() {
       <Route path="/employees" element={
         <ProtectedRoute>
           <Employees />
+        </ProtectedRoute>
+      } />
+      <Route path="/payroll" element={
+        <ProtectedRoute>
+          <Payroll />
+        </ProtectedRoute>
+      } />
+      <Route path="/forecast" element={
+        <ProtectedRoute>
+          <Forecast />
         </ProtectedRoute>
       } />
       <Route path="/settings" element={

@@ -1,10 +1,55 @@
 export interface User {
   id: string;
+  employeeId: string; // Auto-generated EMP-001, EMP-002, etc.
   name: string;
   email: string;
-  role: 'manager' | 'employee' | 'technician';
+  role: 'admin' | 'employee';
   avatar?: string;
   phone?: string;
+  permissions: UserPermissions;
+  salary?: EmployeeSalary;
+  createdAt: Date;
+}
+
+export interface UserPermissions {
+  customers: boolean;
+  serviceOrders: boolean;
+  inventory: boolean;
+  invoices: boolean;
+  expenses: boolean;
+  reports: boolean;
+  employees: boolean;
+  settings: boolean;
+  financialReports: boolean;
+  profitAnalysis: boolean;
+  payroll: boolean;
+  workshopRent: boolean;
+}
+
+export interface EmployeeSalary {
+  baseSalary: number;
+  allowances: Allowance[];
+  profitPercentage: number; // Percentage of net profit
+  totalSalary?: number; // Calculated monthly
+}
+
+export interface Allowance {
+  id: string;
+  name: string;
+  amount: number;
+  type: 'fixed' | 'percentage';
+}
+
+export interface PayrollRecord {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  month: string; // YYYY-MM format
+  baseSalary: number;
+  allowances: number;
+  profitShare: number;
+  totalSalary: number;
+  paidDate: Date;
   createdAt: Date;
 }
 
@@ -15,7 +60,20 @@ export interface Customer {
   email?: string;
   address?: string;
   cars: Car[];
+  visitHistory: VisitRecord[];
   createdAt: Date;
+}
+
+export interface VisitRecord {
+  id: string;
+  date: Date;
+  carId: string;
+  carInfo: string; // Make Model - Plate
+  serviceSummary: string;
+  invoiceNumber: string;
+  amount: number;
+  paymentMethod: string;
+  invoiceId: string;
 }
 
 export interface Car {
@@ -46,19 +104,28 @@ export interface MaintenanceRecord {
 
 export interface ServiceOrder {
   id: string;
+  orderNumber: string;
   customerId: string;
   carId: string;
-  description: string;
+  services: ServiceItem[]; // Multiple services per order
   status: 'open' | 'in_progress' | 'completed';
   priority: 'low' | 'medium' | 'high';
   assignedTechnician?: string;
-  partsUsed: InventoryUsage[];
-  laborCost: number;
   estimatedCompletion?: Date;
   actualCompletion?: Date;
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface ServiceItem {
+  id: string;
+  name: string;
+  category: 'electrical' | 'mechanical' | 'bodywork' | 'maintenance' | 'other';
+  description: string;
+  price: number;
+  partsUsed: InventoryUsage[];
+  completed: boolean;
 }
 
 export interface InventoryItem {
@@ -68,18 +135,22 @@ export interface InventoryItem {
   partNumber: string;
   quantity: number;
   minQuantity: number;
-  cost: number;
+  unitCost: number;
   sellingPrice: number;
   supplier?: string;
   location?: string;
+  totalValue: number; // quantity * unitCost
+  monthlyConsumption: number;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface InventoryUsage {
   itemId: string;
+  itemName: string;
   quantity: number;
-  unitPrice: number;
+  unitCost: number;
+  totalCost: number;
 }
 
 export interface Invoice {
@@ -87,7 +158,8 @@ export interface Invoice {
   invoiceNumber: string;
   customerId: string;
   customerName: string;
-  serviceOrderId: string;
+  customerInfo: CustomerInfo;
+  serviceOrderId?: string;
   items: InvoiceItem[];
   subtotal: number;
   discount: number;
@@ -95,27 +167,46 @@ export interface Invoice {
   vatAmount: number;
   total: number;
   status: 'paid' | 'pending' | 'overdue';
+  paymentMethod?: 'cash' | 'card' | 'transfer' | 'check';
   issueDate: string;
-  dueDate: Date;
+  dueDate: string;
+  paidDate?: string;
+  qrCode: string; // ZATCA QR Code
   notes?: string;
   createdAt: Date;
 }
 
+export interface CustomerInfo {
+  name: string;
+  nameEn?: string;
+  phone: string;
+  email?: string;
+  address?: string;
+  vatNumber?: string;
+}
+
 export interface InvoiceItem {
   description: string;
+  descriptionEn?: string;
   quantity: number;
   unitPrice: number;
+  vatRate: number;
+  vatAmount: number;
   total: number;
 }
 
 export interface Expense {
   id: string;
-  description: string;
+  name: string;
+  nameEn?: string;
   category: string;
   amount: number;
+  type: 'recurring' | 'one-time';
+  recurrence?: 'monthly' | 'quarterly' | 'yearly';
   date: Date;
-  paymentMethod: 'cash' | 'card' | 'transfer';
-  receipt?: string;
+  nextDueDate?: Date;
+  attachments?: string[];
+  description?: string;
   createdBy: string;
   createdAt: Date;
 }
@@ -124,7 +215,7 @@ export interface Payment {
   id: string;
   invoiceId: string;
   amount: number;
-  method: 'cash' | 'card' | 'transfer';
+  method: 'cash' | 'card' | 'transfer' | 'check';
   date: Date;
   notes?: string;
   createdBy: string;
@@ -133,14 +224,19 @@ export interface Payment {
 
 export interface Settings {
   workshopName: string;
+  workshopNameEn: string;
   logo?: string;
+  seal?: string; // Workshop seal/stamp
+  crNumber: string;
+  vatNumber: string;
   address: string;
+  addressEn: string;
   phone: string;
   email: string;
-  taxNumber: string;
+  iban?: string;
   vatRate: number;
   currency: string;
-  language: 'ar' | 'en';
+  defaultLanguage: 'ar' | 'en';
   theme: {
     primary: string;
     secondary: string;
@@ -148,7 +244,10 @@ export interface Settings {
   invoiceSettings: {
     prefix: string;
     footer: string;
+    footerEn: string;
     terms: string;
+    termsEn: string;
+    logoAsWatermark: boolean;
   };
 }
 
@@ -161,4 +260,71 @@ export interface DashboardStats {
   topCustomers: { name: string; amount: number }[];
   lowStockItems: InventoryItem[];
   recentOrders: ServiceOrder[];
+  totalInventoryValue: number;
+  monthlyExpenses: number;
+  netProfit: number;
+}
+
+export interface ProfitLossReport {
+  period: {
+    from: string;
+    to: string;
+  };
+  revenue: {
+    invoices: number;
+    services: number;
+    parts: number;
+  };
+  expenses: {
+    salaries: number;
+    rent: number;
+    operating: number;
+    partsCost: number;
+    other: number;
+  };
+  netProfit: number;
+  profitMargin: number;
+}
+
+export interface FinancialForecast {
+  currentPeriod: {
+    from: string;
+    to: string;
+  };
+  projectedYearEnd: {
+    revenue: number;
+    expenses: number;
+    netProfit: number;
+  };
+  growthFactor: number;
+  alerts: ForecastAlert[];
+}
+
+export interface ForecastAlert {
+  type: 'warning' | 'danger' | 'info';
+  message: string;
+  messageEn: string;
+}
+
+// Saudi Vehicle Database
+export interface VehicleMake {
+  id: string;
+  name: string;
+  nameEn: string;
+  models: VehicleModel[];
+}
+
+export interface VehicleModel {
+  id: string;
+  name: string;
+  nameEn: string;
+  years: number[];
+}
+
+export interface PasswordResetRequest {
+  employeeId: string;
+  email: string;
+  token: string;
+  expiresAt: Date;
+  used: boolean;
 }

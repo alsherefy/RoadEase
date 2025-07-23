@@ -1,17 +1,26 @@
 import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { Car, Eye, EyeOff } from 'lucide-react';
+import { Car, Eye, EyeOff, Mail, Key } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Button from '../components/UI/Button';
 import Input from '../components/UI/Input';
+import Modal from '../components/UI/Modal';
 
 const Login: React.FC = () => {
-  const [email, setEmail] = useState('');
+  const [loginType, setLoginType] = useState<'email' | 'employeeId'>('email');
+  const [emailOrId, setEmailOrId] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const { user, login, isLoading } = useAuth();
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [resetEmployeeId, setResetEmployeeId] = useState('');
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetToken, setResetToken] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [resetStep, setResetStep] = useState<'request' | 'reset'>('request');
+  
+  const { user, login, loginWithEmployeeId, requestPasswordReset, resetPassword, isLoading } = useAuth();
   const { t, language, setLanguage } = useLanguage();
 
   if (user && !isLoading) {
@@ -22,9 +31,42 @@ const Login: React.FC = () => {
     e.preventDefault();
     setError('');
     
-    const success = await login(email, password);
+    let success = false;
+    
+    if (loginType === 'email') {
+      success = await login(emailOrId, password);
+    } else {
+      success = await loginWithEmployeeId(emailOrId, password);
+    }
+    
     if (!success) {
-      setError(t('invalidCredentials'));
+      setError('بيانات الدخول غير صحيحة');
+    }
+  };
+
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (resetStep === 'request') {
+      const success = await requestPasswordReset(resetEmployeeId, resetEmail);
+      if (success) {
+        setResetStep('reset');
+      } else {
+        alert('لم يتم العثور على موظف بهذه البيانات');
+      }
+    } else {
+      const success = await resetPassword(resetToken, newPassword);
+      if (success) {
+        alert('تم تغيير كلمة المرور بنجاح');
+        setIsResetModalOpen(false);
+        setResetStep('request');
+        setResetEmployeeId('');
+        setResetEmail('');
+        setResetToken('');
+        setNewPassword('');
+      } else {
+        alert('رمز التحقق غير صحيح أو منتهي الصلاحية');
+      }
     }
   };
 
@@ -49,17 +91,45 @@ const Login: React.FC = () => {
             </div>
           </div>
 
+          {/* Login Type Toggle */}
+          <div className="flex justify-center mb-6">
+            <div className="bg-gray-100 p-1 rounded-lg flex">
+              <button
+                type="button"
+                onClick={() => setLoginType('email')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  loginType === 'email'
+                    ? 'bg-orange-600 text-white'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                البريد الإلكتروني
+              </button>
+              <button
+                type="button"
+                onClick={() => setLoginType('employeeId')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  loginType === 'employeeId'
+                    ? 'bg-orange-600 text-white'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                رقم الموظف
+              </button>
+            </div>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                {t('email')}
+              <label htmlFor="emailOrId" className="block text-sm font-medium text-gray-700 mb-2">
+                {loginType === 'email' ? 'البريد الإلكتروني' : 'رقم الموظف'}
               </label>
               <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@roadease.com"
+                id="emailOrId"
+                type={loginType === 'email' ? 'email' : 'text'}
+                value={emailOrId}
+                onChange={(e) => setEmailOrId(e.target.value)}
+                placeholder={loginType === 'email' ? 'admin@roadease.com' : 'ADM-001'}
                 required
               />
             </div>
@@ -106,16 +176,138 @@ const Login: React.FC = () => {
             </Button>
           </form>
 
+          {/* Password Reset Link */}
+          <div className="mt-4 text-center">
+            <button
+              type="button"
+              onClick={() => setIsResetModalOpen(true)}
+              className="text-sm text-orange-600 hover:text-orange-700 font-medium"
+            >
+              نسيت كلمة المرور؟
+            </button>
+          </div>
+
           <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-            <h3 className="font-medium text-gray-900 mb-2">Demo Accounts:</h3>
+            <h3 className="font-medium text-gray-900 mb-2">حسابات تجريبية:</h3>
             <div className="text-sm text-gray-600 space-y-1">
-              <p>Manager: admin@roadease.com / admin123</p>
-              <p>Employee: employee@roadease.com / emp123</p>
-              <p>Technician: tech@roadease.com / tech123</p>
+              <p>مدير: admin@roadease.com أو ADM-001 / admin123</p>
+              <p>موظف: employee@roadease.com أو EMP-001 / emp123</p>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Password Reset Modal */}
+      <Modal
+        isOpen={isResetModalOpen}
+        onClose={() => {
+          setIsResetModalOpen(false);
+          setResetStep('request');
+          setResetEmployeeId('');
+          setResetEmail('');
+          setResetToken('');
+          setNewPassword('');
+        }}
+        title="إعادة تعيين كلمة المرور"
+      >
+        {resetStep === 'request' ? (
+          <form onSubmit={handlePasswordReset} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                رقم الموظف
+              </label>
+              <div className="relative">
+                <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  type="text"
+                  value={resetEmployeeId}
+                  onChange={(e) => setResetEmployeeId(e.target.value)}
+                  placeholder="EMP-001"
+                  className="pl-10"
+                  required
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                البريد الإلكتروني المسجل
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  type="email"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  placeholder="employee@example.com"
+                  className="pl-10"
+                  required
+                />
+              </div>
+            </div>
+            
+            <div className="bg-blue-50 p-3 rounded-md">
+              <p className="text-sm text-blue-800">
+                سيتم إرسال رابط إعادة تعيين كلمة المرور إلى البريد الإلكتروني المسجل
+              </p>
+            </div>
+            
+            <div className="flex justify-end space-x-3">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setIsResetModalOpen(false)}
+              >
+                إلغاء
+              </Button>
+              <Button type="submit">
+                إرسال رابط الإعادة
+              </Button>
+            </div>
+          </form>
+        ) : (
+          <form onSubmit={handlePasswordReset} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                رمز التحقق
+              </label>
+              <Input
+                type="text"
+                value={resetToken}
+                onChange={(e) => setResetToken(e.target.value)}
+                placeholder="أدخل رمز التحقق المرسل إليك"
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                كلمة المرور الجديدة
+              </label>
+              <Input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="أدخل كلمة المرور الجديدة"
+                required
+              />
+            </div>
+            
+            <div className="flex justify-end space-x-3">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setResetStep('request')}
+              >
+                رجوع
+              </Button>
+              <Button type="submit">
+                تغيير كلمة المرور
+              </Button>
+            </div>
+          </form>
+        )}
+      </Modal>
     </div>
   );
 };

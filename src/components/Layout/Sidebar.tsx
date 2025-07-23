@@ -10,7 +10,9 @@ import {
   BarChart3, 
   UserCog, 
   Settings,
-  Car
+  Car,
+  TrendingUp,
+  Wallet
 } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -20,20 +22,23 @@ const Sidebar: React.FC = () => {
   const { user } = useAuth();
 
   const menuItems = [
-    { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard'), roles: ['manager', 'employee', 'technician'] },
-    { path: '/customers', icon: Users, label: t('customers'), roles: ['manager', 'employee'] },
-    { path: '/service-orders', icon: Wrench, label: t('serviceOrders'), roles: ['manager', 'employee', 'technician'] },
-    { path: '/inventory', icon: Package, label: t('inventory'), roles: ['manager', 'employee'] },
-    { path: '/invoices', icon: FileText, label: t('invoices'), roles: ['manager', 'employee'] },
-    { path: '/expenses', icon: DollarSign, label: t('expenses'), roles: ['manager'] },
-    { path: '/reports', icon: BarChart3, label: t('reports'), roles: ['manager'] },
-    { path: '/employees', icon: UserCog, label: t('employees'), roles: ['manager'] },
-    { path: '/settings', icon: Settings, label: t('settings'), roles: ['manager'] },
+    { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard'), permission: null },
+    { path: '/customers', icon: Users, label: t('customers'), permission: 'customers' },
+    { path: '/service-orders', icon: Wrench, label: t('serviceOrders'), permission: 'serviceOrders' },
+    { path: '/inventory', icon: Package, label: t('inventory'), permission: 'inventory' },
+    { path: '/invoices', icon: FileText, label: t('invoices'), permission: 'invoices' },
+    { path: '/expenses', icon: DollarSign, label: t('expenses'), permission: 'expenses' },
+    { path: '/reports', icon: BarChart3, label: t('reports'), permission: 'reports' },
+    { path: '/payroll', icon: Wallet, label: 'الرواتب', permission: 'payroll' },
+    { path: '/forecast', icon: TrendingUp, label: 'التوقعات المالية', permission: 'financialReports' },
+    { path: '/employees', icon: UserCog, label: t('employees'), permission: 'employees' },
+    { path: '/settings', icon: Settings, label: t('settings'), permission: 'settings' },
   ];
 
-  const filteredMenuItems = menuItems.filter(item => 
-    item.roles.includes(user?.role || 'employee')
-  );
+  const filteredMenuItems = menuItems.filter(item => {
+    if (!item.permission) return true; // Dashboard is always accessible
+    return user?.permissions?.[item.permission as keyof typeof user.permissions] || false;
+  });
 
   return (
     <div className={`fixed top-0 ${dir === 'rtl' ? 'right-0' : 'left-0'} h-full w-64 bg-gray-900 text-white shadow-lg z-50`}>
