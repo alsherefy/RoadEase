@@ -49,28 +49,34 @@ function AppRoutes() {
           <Dashboard />
         </ProtectedRoute>
       } />
-      <Route path="/customers" element={
-        <ProtectedRoute>
-          <Customers />
+          <Expenses />
         </ProtectedRoute>
       } />
-      <Route path="/service-orders" element={
+      <Route path="/reports" element={
         <ProtectedRoute>
-          <ServiceOrders />
+          <Reports />
         </ProtectedRoute>
       } />
-      <Route path="/inventory" element={
+      <Route path="/employees" element={
         <ProtectedRoute>
-          <Inventory />
+          <Employees />
         </ProtectedRoute>
       } />
-      <Route path="/invoices" element={
+      <Route path="/payroll" element={
         <ProtectedRoute>
-          <Invoices />
+          <Payroll />
         </ProtectedRoute>
       } />
-      <Route path="/expenses" element={
+      <Route path="/forecast" element={
         <ProtectedRoute>
+          <Forecast />
+        </ProtectedRoute>
+      } />
+      <Route path="/settings" element={
+        <ProtectedRoute>
+          <Settings />
+        </ProtectedRoute>
+      } />
           <Expenses />
         </ProtectedRoute>
       } />
