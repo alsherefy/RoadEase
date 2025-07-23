@@ -1,121 +1,114 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import { LanguageProvider } from './contexts/LanguageContext';
-import { AppProvider } from './contexts/AppContext';
-import { useAuth } from './contexts/AuthContext';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import { Invoice, Customer } from '../types';
 
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import Customers from './pages/Customers';
-import ServiceOrders from './pages/ServiceOrders';
-import Inventory from './pages/Inventory';
-import Invoices from './pages/Invoices';
-import Expenses from './pages/Expenses';
-import Reports from './pages/Reports';
-import Employees from './pages/Employees';
-import Payroll from './pages/Payroll';
-import Forecast from './pages/Forecast';
-import Settings from './pages/Settings';
-import Layout from './components/Layout/Layout';
-
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, isLoading } = useAuth();
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">جاري التحميل...</p>
-        </div>
-      </div>
-    );
+export const generateInvoicePDF = async (invoice: Invoice, customer: Customer, settings?: any) => {
+  try {
+    // Create a new jsPDF instance
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    
+    // Set up fonts and colors
+    pdf.setFont('helvetica');
+    
+    // Header
+    pdf.setFontSize(20);
+    pdf.setTextColor(40, 40, 40);
+    pdf.text('فاتورة', 105, 20, { align: 'center' });
+    
+    // Company info (if available in settings)
+    if (settings?.companyName) {
+      pdf.setFontSize(14);
+      pdf.text(settings.companyName, 20, 35);
+    }
+    
+    // Invoice details
+    pdf.setFontSize(12);
+    pdf.text(`رقم الفاتورة: ${invoice.invoiceNumber}`, 20, 50);
+    pdf.text(`تاريخ الإصدار: ${invoice.issueDate}`, 20, 60);
+    pdf.text(`تاريخ الاستحقاق: ${invoice.dueDate}`, 20, 70);
+    
+    // Customer info
+    pdf.text('بيانات العميل:', 20, 90);
+    pdf.text(`الاسم: ${customer.name}`, 20, 100);
+    pdf.text(`الهاتف: ${customer.phone}`, 20, 110);
+    if (customer.email) {
+      pdf.text(`البريد الإلكتروني: ${customer.email}`, 20, 120);
+    }
+    
+    // Payment method
+    const paymentMethodText = getPaymentMethodText(invoice.paymentMethod);
+    pdf.text(`طريقة الدفع: ${paymentMethodText}`, 20, 130);
+    
+    // Items table header
+    let yPosition = 150;
+    pdf.setFillColor(240, 240, 240);
+    pdf.rect(20, yPosition, 170, 10, 'F');
+    pdf.text('الصنف', 25, yPosition + 7);
+    pdf.text('الكمية', 80, yPosition + 7);
+    pdf.text('السعر', 120, yPosition + 7);
+    pdf.text('المجموع', 160, yPosition + 7);
+    
+    // Items
+    yPosition += 15;
+    invoice.items.forEach((item, index) => {
+      const itemTotal = item.quantity * item.price;
+      pdf.text(`صنف ${index + 1}`, 25, yPosition);
+      pdf.text(item.quantity.toString(), 80, yPosition);
+      pdf.text(`${item.price.toFixed(2)} ريال`, 120, yPosition);
+      pdf.text(`${itemTotal.toFixed(2)} ريال`, 160, yPosition);
+      yPosition += 10;
+    });
+    
+    // Totals
+    yPosition += 10;
+    pdf.line(20, yPosition, 190, yPosition);
+    yPosition += 10;
+    
+    pdf.text(`المجموع الفرعي: ${invoice.subtotal.toFixed(2)} ريال`, 120, yPosition);
+    yPosition += 10;
+    pdf.text(`الضريبة (15%): ${invoice.tax.toFixed(2)} ريال`, 120, yPosition);
+    yPosition += 10;
+    pdf.setFontSize(14);
+    pdf.text(`المجموع الكلي: ${invoice.total.toFixed(2)} ريال`, 120, yPosition);
+    
+    // Notes
+    if (invoice.notes) {
+      yPosition += 20;
+      pdf.setFontSize(12);
+      pdf.text('ملاحظات:', 20, yPosition);
+      yPosition += 10;
+      pdf.text(invoice.notes, 20, yPosition);
+    }
+    
+    // Status
+    yPosition += 20;
+    const statusText = getStatusText(invoice.status);
+    pdf.text(`حالة الفاتورة: ${statusText}`, 20, yPosition);
+    
+    // Save the PDF
+    pdf.save(`invoice-${invoice.invoiceNumber}.pdf`);
+    
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    alert('حدث خطأ في إنشاء ملف PDF');
   }
-
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return <Layout>{children}</Layout>;
 };
 
-function AppRoutes() {
-  return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/dashboard" element={
-        <ProtectedRoute>
-          <Dashboard />
-        </ProtectedRoute>
-      } />
-      <Route path="/customers" element={
-        <ProtectedRoute>
-          <Customers />
-        </ProtectedRoute>
-      } />
-      <Route path="/service-orders" element={
-        <ProtectedRoute>
-          <ServiceOrders />
-        </ProtectedRoute>
-      } />
-      <Route path="/inventory" element={
-        <ProtectedRoute>
-          <Inventory />
-        </ProtectedRoute>
-      } />
-      <Route path="/invoices" element={
-        <ProtectedRoute>
-          <Invoices />
-        </ProtectedRoute>
-      } />
-      <Route path="/expenses" element={
-        <ProtectedRoute>
-          <Expenses />
-        </ProtectedRoute>
-      } />
-      <Route path="/reports" element={
-        <ProtectedRoute>
-          <Reports />
-        </ProtectedRoute>
-      } />
-      <Route path="/employees" element={
-        <ProtectedRoute>
-          <Employees />
-        </ProtectedRoute>
-      } />
-      <Route path="/payroll" element={
-        <ProtectedRoute>
-          <Payroll />
-        </ProtectedRoute>
-      } />
-      <Route path="/forecast" element={
-        <ProtectedRoute>
-          <Forecast />
-        </ProtectedRoute>
-      } />
-      <Route path="/settings" element={
-        <ProtectedRoute>
-          <Settings />
-        </ProtectedRoute>
-      } />
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-    </Routes>
-  );
-}
+const getPaymentMethodText = (method: string): string => {
+  switch (method) {
+    case 'cash': return 'نقداً';
+    case 'mada': return 'بطاقة مدى';
+    case 'visa': return 'فيزا';
+    default: return 'نقداً';
+  }
+};
 
-function App() {
-  return (
-    <LanguageProvider>
-      <AuthProvider>
-        <AppProvider>
-          <Router>
-            <AppRoutes />
-          </Router>
-        </AppProvider>
-      </AuthProvider>
-    </LanguageProvider>
-  );
-}
-
-export default App;
+const getStatusText = (status: string): string => {
+  switch (status) {
+    case 'draft': return 'مسودة';
+    case 'sent': return 'مرسلة';
+    case 'paid': return 'مدفوعة';
+    case 'overdue': return 'متأخرة';
+    default: return 'مسودة';
+  }
+};
