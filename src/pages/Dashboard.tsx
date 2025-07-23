@@ -58,19 +58,19 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
         {statCards.map((stat, index) => {
           const Icon = stat.icon;
           return (
             <Card key={index} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
+              <CardContent className="p-4 lg:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                    <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
+                    <p className="text-xs lg:text-sm font-medium text-gray-600">{stat.title}</p>
+                    <p className="text-lg lg:text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
                   </div>
                   <div className={`${stat.bgColor} p-3 rounded-full`}>
-                    <Icon className={`h-6 w-6 ${stat.color}`} />
+                    <Icon className={`h-4 w-4 lg:h-6 lg:w-6 ${stat.color}`} />
                   </div>
                 </div>
               </CardContent>
@@ -79,7 +79,7 @@ const Dashboard: React.FC = () => {
         })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Revenue Chart */}
         <Card>
           <CardHeader>
@@ -89,7 +89,7 @@ const Dashboard: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={250}>
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
@@ -112,16 +112,16 @@ const Dashboard: React.FC = () => {
           <CardContent>
             <div className="space-y-4">
               {dashboardStats.topCustomers.slice(0, 5).map((customer, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div key={index} className="flex items-center justify-between p-2 lg:p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
-                      <span className="text-white font-medium text-sm">
+                    <div className="w-6 h-6 lg:w-8 lg:h-8 bg-orange-500 rounded-full flex items-center justify-center">
+                      <span className="text-white font-medium text-xs lg:text-sm">
                         {customer.name.charAt(0)}
                       </span>
                     </div>
-                    <span className="font-medium text-gray-900">{customer.name}</span>
+                    <span className="font-medium text-gray-900 text-sm lg:text-base">{customer.name}</span>
                   </div>
-                  <span className="font-bold text-green-600">
+                  <span className="font-bold text-green-600 text-sm lg:text-base">
                     {customer.amount.toLocaleString()} ريال
                   </span>
                 </div>
@@ -134,7 +134,7 @@ const Dashboard: React.FC = () => {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Low Stock Alert */}
         <Card>
           <CardHeader>
@@ -146,13 +146,13 @@ const Dashboard: React.FC = () => {
           <CardContent>
             <div className="space-y-3">
               {dashboardStats.lowStockItems.map((item) => (
-                <div key={item.id} className="flex items-center justify-between p-3 border border-red-200 rounded-lg bg-red-50">
+                <div key={item.id} className="flex items-center justify-between p-2 lg:p-3 border border-red-200 rounded-lg bg-red-50">
                   <div>
-                    <p className="font-medium text-gray-900">{item.name}</p>
-                    <p className="text-sm text-gray-600">{item.partNumber}</p>
+                    <p className="font-medium text-gray-900 text-sm lg:text-base">{item.name}</p>
+                    <p className="text-xs lg:text-sm text-gray-600">{item.partNumber}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-red-600">{item.quantity}</p>
+                    <p className="font-bold text-red-600 text-sm lg:text-base">{item.quantity}</p>
                     <p className="text-xs text-gray-500">الحد الأدنى: {item.minQuantity}</p>
                   </div>
                 </div>
@@ -175,9 +175,9 @@ const Dashboard: React.FC = () => {
           <CardContent>
             <div className="space-y-3">
               {dashboardStats.recentOrders.map((order) => (
-                <div key={order.id} className="p-3 border border-gray-200 rounded-lg">
+                <div key={order.id} className="p-2 lg:p-3 border border-gray-200 rounded-lg">
                   <div className="flex items-center justify-between">
-                    <p className="font-medium text-gray-900">{order.description}</p>
+                    <p className="font-medium text-gray-900 text-sm lg:text-base">{order.description}</p>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                       order.status === 'open' ? 'bg-yellow-100 text-yellow-800' :
                       order.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
@@ -187,7 +187,7 @@ const Dashboard: React.FC = () => {
                        order.status === 'in_progress' ? 'تحت التنفيذ' : 'مكتمل'}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-xs lg:text-sm text-gray-600 mt-1">
                     الفني: {order.assignedTechnician || 'غير محدد'}
                   </p>
                 </div>

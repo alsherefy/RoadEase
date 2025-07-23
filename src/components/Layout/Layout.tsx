@@ -1,4 +1,5 @@
 import React from 'react';
+import { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import Sidebar from './Sidebar';
 import Header from './Header';
@@ -9,16 +10,29 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { dir } = useLanguage();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Sidebar />
-      <Header />
-      <main className={`pt-16 ${dir === 'rtl' ? 'pr-64' : 'pl-64'} min-h-screen`}>
+    <div className="min-h-screen bg-gray-50 relative">
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Header onMenuClick={() => setSidebarOpen(true)} />
+      <main className={`pt-16 min-h-screen transition-all duration-300 ${
+        dir === 'rtl' 
+          ? 'lg:pr-64' 
+          : 'lg:pl-64'
+      }`}>
         <div className="p-6">
           {children}
         </div>
       </main>
+      
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
     </div>
   );
 };

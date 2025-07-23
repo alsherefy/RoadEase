@@ -12,12 +12,18 @@ import {
   Settings,
   Car,
   TrendingUp,
-  Wallet
+  Wallet,
+  X
 } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { t, dir } = useLanguage();
   const { user } = useAuth();
 
@@ -41,7 +47,17 @@ const Sidebar: React.FC = () => {
   });
 
   return (
-    <div className={`fixed top-0 ${dir === 'rtl' ? 'right-0' : 'left-0'} h-full w-64 bg-gray-900 text-white shadow-lg z-50`}>
+    <div className={`fixed top-0 h-full w-64 bg-gray-900 text-white shadow-lg z-50 transform transition-transform duration-300 ${
+      isOpen ? 'translate-x-0' : dir === 'rtl' ? 'translate-x-full' : '-translate-x-full'
+    } ${dir === 'rtl' ? 'right-0' : 'left-0'} lg:translate-x-0`}>
+      {/* Mobile close button */}
+      <button
+        onClick={onClose}
+        className="lg:hidden absolute top-4 right-4 p-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-800"
+      >
+        <X className="h-6 w-6" />
+      </button>
+      
       <div className="p-6">
         <div className="flex items-center space-x-3">
           <Car className="h-8 w-8 text-orange-500" />
@@ -57,6 +73,7 @@ const Sidebar: React.FC = () => {
               <NavLink
                 key={item.path}
                 to={item.path}
+                onClick={onClose}
                 className={({ isActive }) =>
                   `flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-colors duration-150 ${
                     isActive

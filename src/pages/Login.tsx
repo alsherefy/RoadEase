@@ -71,15 +71,15 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center px-4 py-8">
       <div className="max-w-md w-full bg-white rounded-xl shadow-2xl overflow-hidden">
-        <div className="p-8">
+        <div className="p-6 sm:p-8">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-4">
               <Car className="h-12 w-12 text-orange-500" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">ROAD EASE</h1>
-            <p className="text-gray-600 mt-2">{t('loginSubtitle')}</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">ROAD EASE</h1>
+            <p className="text-gray-600 mt-2 text-sm sm:text-base">{t('loginSubtitle')}</p>
             
             <div className="flex justify-center mt-4">
               <button
@@ -97,7 +97,7 @@ const Login: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setLoginType('email')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
                   loginType === 'email'
                     ? 'bg-orange-600 text-white'
                     : 'text-gray-600 hover:text-gray-800'
@@ -108,7 +108,7 @@ const Login: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setLoginType('employeeId')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
                   loginType === 'employeeId'
                     ? 'bg-orange-600 text-white'
                     : 'text-gray-600 hover:text-gray-800'
@@ -187,9 +187,9 @@ const Login: React.FC = () => {
             </button>
           </div>
 
-          <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+          <div className="mt-6 sm:mt-8 p-3 sm:p-4 bg-gray-50 rounded-lg">
             <h3 className="font-medium text-gray-900 mb-2">حسابات تجريبية:</h3>
-            <div className="text-sm text-gray-600 space-y-1">
+            <div className="text-xs sm:text-sm text-gray-600 space-y-1">
               <p>مدير: admin@roadease.com أو ADM-001 / admin123</p>
               <p>موظف: employee@roadease.com أو EMP-001 / emp123</p>
             </div>

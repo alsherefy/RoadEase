@@ -8,7 +8,7 @@ interface TableProps {
 
 export const Table: React.FC<TableProps> = ({ children, className = '' }) => {
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto -mx-4 sm:mx-0">
       <table className={`min-w-full divide-y divide-gray-200 ${className}`}>
         {children}
       </table>
