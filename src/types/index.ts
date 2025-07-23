@@ -49,6 +49,28 @@ function AppRoutes() {
           <Dashboard />
         </ProtectedRoute>
       } />
+      <Route path="/customers" element={
+        <ProtectedRoute>
+          <Customers />
+        </ProtectedRoute>
+      } />
+      <Route path="/service-orders" element={
+        <ProtectedRoute>
+          <ServiceOrders />
+        </ProtectedRoute>
+      } />
+      <Route path="/inventory" element={
+        <ProtectedRoute>
+          <Inventory />
+        </ProtectedRoute>
+      } />
+      <Route path="/invoices" element={
+        <ProtectedRoute>
+          <Invoices />
+        </ProtectedRoute>
+      } />
+      <Route path="/expenses" element={
+        <ProtectedRoute>
           <Expenses />
         </ProtectedRoute>
       } />
