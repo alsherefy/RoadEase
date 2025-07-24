@@ -13,7 +13,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
 
   return (
     <header className={`fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 shadow-sm z-40 ${
-      dir === 'rtl' ? 'lg:right-0 lg:left-64' : 'lg:left-64 lg:right-0'
+      dir === 'rtl' ? 'lg:right-0 lg:left-56' : 'lg:left-56 lg:right-0'
     }`}>
       <div className="flex items-center justify-between h-full px-6">
         <div className="flex items-center space-x-4">

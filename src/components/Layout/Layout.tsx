@@ -18,8 +18,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <Header onMenuClick={() => setSidebarOpen(true)} />
       <main className={`pt-16 min-h-screen transition-all duration-300 ${
         dir === 'rtl' 
-          ? 'lg:pr-64' 
-          : 'lg:pl-64'
+          ? 'lg:pr-56' 
+          : 'lg:pl-56'
       }`}>
         <div className="p-6">
           {children}
