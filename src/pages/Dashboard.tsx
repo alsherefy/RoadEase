@@ -40,7 +40,7 @@ const Dashboard: React.FC = () => {
       .reduce((sum, exp) => sum + exp.amount, 0);
     
     return {
-      month: date.toLocaleDateString('ar-SA', { month: 'short' }),
+      month: date.toLocaleDateString('ar-SA', { month: 'short', year: '2-digit' }),
       revenue,
       expenses: expense,
       profit: revenue - expense

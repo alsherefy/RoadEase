@@ -186,7 +186,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   onClick={logout}
                   className="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white rounded-lg transition-all duration-200"
                 >
-                  <LogOut className="w-4 h-4 ml-2" />
+                  <LogOut className="w-4 h-4 mr-2" />
                   تسجيل الخروج
                 </button>
               </div>

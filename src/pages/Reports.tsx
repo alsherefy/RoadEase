@@ -84,7 +84,7 @@ const Reports: React.FC = () => {
       .reduce((sum, expense) => sum + expense.amount, 0);
 
     return {
-      month: month.toLocaleDateString('ar-SA', { month: 'short' }),
+      month: month.toLocaleDateString('ar-SA', { month: 'short', year: 'numeric' }),
       revenue: monthRevenue,
       expenses: monthExpenses,
       profit: monthRevenue - monthExpenses

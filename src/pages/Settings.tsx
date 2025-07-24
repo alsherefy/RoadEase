@@ -41,7 +41,7 @@ const Settings: React.FC = () => {
     { id: 'financial', label: 'المالية', icon: DollarSign }
   ];
 
-  // Only managers can access settings
+  // Only admins can access settings
   if (!user?.permissions?.settings) {
     return (
       <div className="text-center py-8">
