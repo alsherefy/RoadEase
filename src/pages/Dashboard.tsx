@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, Car, Wrench, DollarSign, TrendingUp, AlertTriangle, Package, FileText, Calendar, Clock, Star, Award } from 'lucide-react';
+import { Users, Car, Wrench, DollarSign, TrendingUp, TrendingDown, AlertTriangle, Package, FileText, Calendar, Clock, Star, Award } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useApp } from '../contexts/AppContext';
@@ -219,84 +219,64 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Enhanced Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Revenue Chart */}
-        <div className="lg:col-span-2">
-          <Card className="shadow-2xl hover:shadow-3xl transition-all duration-500 border-0 bg-white/80 backdrop-blur-sm">
-            <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-100">
-              <CardTitle className="flex items-center text-gray-800">
-                <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-500 rounded-xl flex items-center justify-center mr-3">
-                  <TrendingUp className="h-6 w-6 text-white" />
-                </div>
-                الإيرادات والمصروفات (آخر 6 أشهر)
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <ResponsiveContainer width="100%" height={350}>
-                <LineChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis dataKey="month" stroke="#666" />
-                  <YAxis stroke="#666" />
-                  <Tooltip 
-                    formatter={(value) => [`${value} ريال`]}
-                    contentStyle={{
-                      backgroundColor: '#fff',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '12px',
-                      boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)'
-                    }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="revenue" 
-                    stroke="url(#revenueGradient)" 
-                    strokeWidth={4}
-                    dot={{ fill: '#10B981', strokeWidth: 3, r: 8 }}
-                    name="الإيرادات"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="expenses" 
-                    stroke="url(#expenseGradient)" 
-                    strokeWidth={4}
-                    dot={{ fill: '#EF4444', strokeWidth: 3, r: 8 }}
-                    name="المصروفات"
-                  />
-                  <defs>
-                    <linearGradient id="revenueGradient" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stopColor="#10B981" />
-                      <stop offset="100%" stopColor="#059669" />
-                    </linearGradient>
-                    <linearGradient id="expenseGradient" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stopColor="#EF4444" />
-                      <stop offset="100%" stopColor="#DC2626" />
-                    </linearGradient>
-                  </defs>
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
+        <Card className="shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-white">
+          <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-100 pb-3">
+            <CardTitle className="flex items-center text-gray-800 text-base">
+              <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-blue-500 rounded-lg flex items-center justify-center mr-2">
+                <TrendingUp className="h-4 w-4 text-white" />
+              </div>
+              الإيرادات الشهرية
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4">
+            <ResponsiveContainer width="100%" height={180}>
+              <LineChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="month" stroke="#666" fontSize={10} />
+                <YAxis stroke="#666" fontSize={10} />
+                <Tooltip 
+                  formatter={(value) => [`${value} ريال`]}
+                  contentStyle={{
+                    backgroundColor: '#fff',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    fontSize: '12px'
+                  }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="revenue" 
+                  stroke="#10B981" 
+                  strokeWidth={2}
+                  dot={{ fill: '#10B981', strokeWidth: 2, r: 4 }}
+                  name="الإيرادات"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
 
         {/* Service Status Pie Chart */}
-        <Card className="shadow-2xl hover:shadow-3xl transition-all duration-500 border-0 bg-white/80 backdrop-blur-sm">
-          <CardHeader className="bg-gradient-to-r from-gray-50 to-purple-50 border-b border-gray-100">
-            <CardTitle className="flex items-center text-gray-800">
-              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mr-3">
-                <Wrench className="h-6 w-6 text-white" />
+        <Card className="shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-white">
+          <CardHeader className="bg-gradient-to-r from-gray-50 to-purple-50 border-b border-gray-100 pb-3">
+            <CardTitle className="flex items-center text-gray-800 text-base">
+              <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center mr-2">
+                <Wrench className="h-4 w-4 text-white" />
               </div>
               حالة طلبات الصيانة
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
-            <ResponsiveContainer width="100%" height={300}>
+          <CardContent className="p-4">
+            <ResponsiveContainer width="100%" height={180}>
               <PieChart>
                 <Pie
                   data={serviceStatusData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
+                  innerRadius={30}
+                  outerRadius={60}
                   paddingAngle={5}
                   dataKey="value"
                 >
@@ -307,20 +287,58 @@ const Dashboard: React.FC = () => {
                 <Tooltip formatter={(value) => [`${value} طلب`]} />
               </PieChart>
             </ResponsiveContainer>
-            <div className="mt-4 space-y-2">
+            <div className="mt-3 space-y-1">
               {serviceStatusData.map((item, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2 space-x-reverse">
+                <div key={index} className="flex items-center justify-between text-sm">
+                  <div className="flex items-center space-x-1 space-x-reverse">
                     <div 
-                      className="w-4 h-4 rounded-full" 
+                      className="w-3 h-3 rounded-full" 
                       style={{ backgroundColor: item.color }}
                     ></div>
-                    <span className="text-sm font-medium text-gray-700">{item.name}</span>
+                    <span className="text-xs text-gray-700">{item.name}</span>
                   </div>
-                  <span className="text-sm font-bold text-gray-900">{item.value}</span>
+                  <span className="text-xs font-bold text-gray-900">{item.value}</span>
                 </div>
               ))}
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Monthly Expenses Chart */}
+        <Card className="shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-white">
+          <CardHeader className="bg-gradient-to-r from-gray-50 to-red-50 border-b border-gray-100 pb-3">
+            <CardTitle className="flex items-center text-gray-800 text-base">
+              <div className="w-8 h-8 bg-gradient-to-r from-red-500 to-orange-500 rounded-lg flex items-center justify-center mr-2">
+                <TrendingDown className="h-4 w-4 text-white" />
+              </div>
+              المصروفات الشهرية
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4">
+            <ResponsiveContainer width="100%" height={180}>
+              <LineChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="month" stroke="#666" fontSize={10} />
+                <YAxis stroke="#666" fontSize={10} />
+                <Tooltip 
+                  formatter={(value) => [`${value} ريال`]}
+                  contentStyle={{
+                    backgroundColor: '#fff',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    fontSize: '12px'
+                  }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="expenses" 
+                  stroke="#EF4444" 
+                  strokeWidth={2}
+                  dot={{ fill: '#EF4444', strokeWidth: 2, r: 4 }}
+                  name="المصروفات"
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
@@ -328,46 +346,46 @@ const Dashboard: React.FC = () => {
       {/* Enhanced Bottom Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Customers */}
-        <Card className="shadow-2xl hover:shadow-3xl transition-all duration-500 border-0 bg-white/80 backdrop-blur-sm">
-          <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-100">
-            <CardTitle className="flex items-center text-gray-800">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center mr-3">
-                <Star className="h-6 w-6 text-white" />
+        <Card className="shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-white">
+          <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-100 pb-3">
+            <CardTitle className="flex items-center text-gray-800 text-base">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center mr-2">
+                <Star className="h-4 w-4 text-white" />
               </div>
               أفضل العملاء
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
-            <div className="space-y-4">
+          <CardContent className="p-4">
+            <div className="space-y-3">
               {topCustomers.map((customer, index) => (
-                <div key={customer.id} className="group flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-2xl hover:from-blue-50 hover:to-indigo-50 transition-all duration-300 hover:shadow-lg">
-                  <div className="flex items-center space-x-4 space-x-reverse">
+                <div key={customer.id} className="group flex items-center justify-between p-3 bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg hover:from-blue-50 hover:to-indigo-50 transition-all duration-300 hover:shadow-md">
+                  <div className="flex items-center space-x-3 space-x-reverse">
                     <div className="relative">
-                      <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-2xl font-bold text-lg group-hover:scale-110 transition-transform duration-300">
+                      <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg font-bold text-sm group-hover:scale-105 transition-transform duration-300">
                         {index + 1}
                       </div>
                       {index === 0 && (
-                        <div className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-                          <Award className="h-3 w-3 text-white" />
+                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                          <Award className="h-2 w-2 text-white" />
                         </div>
                       )}
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-800 group-hover:text-blue-600 transition-colors duration-300">{customer.name}</p>
-                      <p className="text-sm text-gray-500">{customer.cars.length} سيارة</p>
+                      <p className="font-semibold text-gray-800 group-hover:text-blue-600 transition-colors duration-300 text-sm">{customer.name}</p>
+                      <p className="text-xs text-gray-500">{customer.cars.length} سيارة</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-green-600 text-lg">
+                    <p className="font-bold text-green-600 text-sm">
                       {customer.revenue.toLocaleString()} {settings.currency}
                     </p>
                   </div>
                 </div>
               ))}
               {topCustomers.length === 0 && (
-                <div className="text-center py-12 text-gray-500">
-                  <Users className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-                  <p className="text-lg font-medium">لا توجد بيانات عملاء متاحة</p>
+                <div className="text-center py-8 text-gray-500">
+                  <Users className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                  <p className="text-sm font-medium">لا توجد بيانات عملاء متاحة</p>
                 </div>
               )}
             </div>
@@ -375,30 +393,30 @@ const Dashboard: React.FC = () => {
         </Card>
 
         {/* Recent Orders */}
-        <Card className="shadow-2xl hover:shadow-3xl transition-all duration-500 border-0 bg-white/80 backdrop-blur-sm">
-          <CardHeader className="bg-gradient-to-r from-gray-50 to-green-50 border-b border-gray-100">
-            <CardTitle className="flex items-center text-gray-800">
-              <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mr-3">
-                <FileText className="h-6 w-6 text-white" />
+        <Card className="shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-white">
+          <CardHeader className="bg-gradient-to-r from-gray-50 to-green-50 border-b border-gray-100 pb-3">
+            <CardTitle className="flex items-center text-gray-800 text-base">
+              <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center mr-2">
+                <FileText className="h-4 w-4 text-white" />
               </div>
               الطلبات الأخيرة
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
-            <div className="space-y-4">
+          <CardContent className="p-4">
+            <div className="space-y-3">
               {recentOrders.map((order) => {
                 const customer = customers.find(c => c.id === order.customerId);
                 return (
-                  <div key={order.id} className="group flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-green-50 rounded-2xl hover:from-green-50 hover:to-emerald-50 transition-all duration-300 hover:shadow-lg">
+                  <div key={order.id} className="group flex items-center justify-between p-3 bg-gradient-to-r from-gray-50 to-green-50 rounded-lg hover:from-green-50 hover:to-emerald-50 transition-all duration-300 hover:shadow-md">
                     <div className="flex-1">
-                      <p className="font-semibold text-gray-800 mb-1 group-hover:text-green-600 transition-colors duration-300">{order.description}</p>
-                      <p className="text-sm text-gray-600 mb-1">{customer?.name}</p>
+                      <p className="font-semibold text-gray-800 mb-1 group-hover:text-green-600 transition-colors duration-300 text-sm">{order.description}</p>
+                      <p className="text-xs text-gray-600 mb-1">{customer?.name}</p>
                       <p className="text-xs text-gray-500">
                         {new Date(order.createdAt).toLocaleDateString('ar-SA')}
                       </p>
                     </div>
-                    <div className="flex items-center space-x-3 space-x-reverse">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium border transition-all duration-300 group-hover:scale-105 ${getStatusColor(order.status)}`}>
+                    <div className="flex items-center space-x-2 space-x-reverse">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium border transition-all duration-300 group-hover:scale-105 ${getStatusColor(order.status)}`}>
                         {getStatusText(order.status)}
                       </span>
                     </div>
@@ -406,9 +424,9 @@ const Dashboard: React.FC = () => {
                 );
               })}
               {recentOrders.length === 0 && (
-                <div className="text-center py-12 text-gray-500">
-                  <FileText className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-                  <p className="text-lg font-medium">لا توجد طلبات صيانة</p>
+                <div className="text-center py-8 text-gray-500">
+                  <FileText className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                  <p className="text-sm font-medium">لا توجد طلبات صيانة</p>
                 </div>
               )}
             </div>
