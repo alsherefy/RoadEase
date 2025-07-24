@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -14,7 +14,9 @@ import {
   DollarSign,
   TrendingUp,
   Settings,
-  LogOut
+  LogOut,
+  Menu,
+  X
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -25,6 +27,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { user, logout } = useAuth();
   const { t, language } = useLanguage();
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const navigationItems = [
     { path: '/dashboard', icon: LayoutDashboard, label: 'لوحة التحكم', key: 'dashboard' },
@@ -45,37 +48,144 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   );
 
   return (
-    <aside className={`fixed inset-y-0 right-0 z-50 w-56 bg-gradient-to-b from-gray-900 to-gray-800 text-white transform transition-transform duration-300 ease-in-out ${
-      isOpen ? 'translate-x-0' : 'translate-x-full'
-    } lg:translate-x-0 lg:static lg:inset-0`}>
-      <div className="p-4">
-        <div className="flex items-center space-x-3 space-x-reverse">
-          <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
-            <Wrench className="w-5 h-5 text-white" />
+    <nav className="bg-gradient-to-r from-gray-900 to-gray-800 text-white shadow-lg">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <div className="flex items-center space-x-3 space-x-reverse">
+            <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
+              <Wrench className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold">ROAD EASE</h1>
+              <p className="text-xs text-gray-300 hidden lg:block">إدارة الورشة</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-lg font-bold">ROAD EASE</h1>
-            <p className="text-xs text-gray-300">إدارة الورشة</p>
+          
+          {/* Desktop Navigation */}
+          <div className="hidden lg:flex items-center space-x-4 space-x-reverse">
+            {filteredItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <NavLink
+                  key={item.key}
+                  to={item.path}
+                  className={({ isActive }) =>
+                    `flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                      isActive
+                        ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg'
+                        : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                    }`
+                  }
+                >
+                  <Icon className="w-4 h-4 ml-2" />
+                  <span className="hidden xl:inline">{item.label}</span>
+                </NavLink>
+              );
+            })}
+          </div>
+          
+          {/* User Info & Actions */}
+          <div className="hidden lg:flex items-center space-x-4 space-x-reverse">
+            <div className="flex items-center space-x-3 space-x-reverse">
+              <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center">
+                <span className="text-xs font-bold text-white">
+                  {user?.name?.charAt(0) || 'U'}
+                </span>
+              </div>
+              <div className="hidden xl:block">
+                <p className="text-sm font-medium text-white">{user?.name}</p>
+                <p className="text-xs text-gray-300">
+                  {user?.role === 'admin' ? 'مدير' : 'موظف'}
+                </p>
+              </div>
+            </div>
+            
+            <button
+              onClick={logout}
+              className="flex items-center px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white rounded-lg transition-all duration-200"
+            >
+              <LogOut className="w-4 h-4 ml-2" />
+              <span className="hidden xl:inline">خروج</span>
+            </button>
+          </div>
+          
+          {/* Mobile menu button */}
+          <div className="lg:hidden">
+            <button
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+              className="text-gray-300 hover:text-white p-2"
+            >
+              {showMobileMenu ? (
+                <X className="w-6 h-6" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )}
+            </button>
           </div>
         </div>
+        
+        {/* Mobile Navigation */}
+        {showMobileMenu && (
+          <div className="lg:hidden border-t border-gray-700">
+            <div className="px-2 pt-2 pb-3 space-y-1">
+              {filteredItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.key}
+                    to={item.path}
+                    onClick={() => {
+                      setShowMobileMenu(false);
+                      onClose();
+                    }}
+                    className={({ isActive }) =>
+                      `flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                        isActive
+                          ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg'
+                          : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                      }`
+                    }
+                  >
+                    <Icon className="w-4 h-4 ml-2" />
+                    {item.label}
+                  </NavLink>
+                );
+              })}
+              
+              {/* Mobile User Actions */}
+              <div className="border-t border-gray-700 pt-3 mt-3">
+                <div className="flex items-center px-3 py-2 mb-2">
+                  <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center ml-3">
+                    <span className="text-xs font-bold text-white">
+                      {user?.name?.charAt(0) || 'U'}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-white">{user?.name}</p>
+                    <p className="text-xs text-gray-300">
+                      {user?.role === 'admin' ? 'مدير' : 'موظف'}
+                    </p>
+                  </div>
+                </div>
+                
+                <button
+                  onClick={logout}
+                  className="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white rounded-lg transition-all duration-200"
+                >
+                  <LogOut className="w-4 h-4 ml-2" />
+                  تسجيل الخروج
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+    </nav>
+  );
+};
 
-      <nav className="mt-6">
-        <div className="px-3 space-y-1">
-          {filteredItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <NavLink
-                key={item.key}
-                to={item.path}
-                onClick={() => onClose()}
-                className={({ isActive }) =>
-                  `flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
-                    isActive
-                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg'
-                      : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                  }`
-                }
+export default Sidebar;
               >
                 <Icon className="w-4 h-4 ml-2" />
                 {item.label}

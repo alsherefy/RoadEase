@@ -106,18 +106,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Mobile Menu Button */}
-      <div className="lg:hidden bg-white border-b border-gray-200 p-4">
-        <button
-          className="p-2 rounded-md text-gray-600 hover:text-gray-800 hover:bg-gray-100"
-        >
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-      </div>
-
-      {/* Welcome Header - Starts from top */}
+      {/* Welcome Header */}
       <div className="flex items-center justify-between bg-gradient-to-r from-orange-600 to-red-500 text-white px-6 py-4 shadow-lg mb-6">
         <div className="flex items-center space-x-4 space-x-reverse">
           <div className="w-10 h-10 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
@@ -140,8 +129,8 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Enhanced Stats Cards - Proper spacing */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+      {/* Statistics Cards */}
+      <div className="px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <Card className="group hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 bg-gradient-to-br from-blue-500 to-blue-600 border-0 text-white overflow-hidden relative">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           <CardContent className="p-4 relative z-10">
@@ -230,7 +219,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Enhanced Charts Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+      <div className="px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
         {/* Revenue Chart */}
         <Card className="shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-white">
           <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-100 pb-3">
@@ -355,7 +344,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Enhanced Bottom Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="px-6 grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Top Customers */}
         <Card className="shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-white">
           <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-100 pb-3">
@@ -447,7 +436,8 @@ const Dashboard: React.FC = () => {
 
       {/* Low Stock Alert */}
       {lowStockItems.length > 0 && (
-        <Card className="border-red-200 bg-gradient-to-r from-red-50 to-orange-50 shadow-2xl">
+        <div className="px-6 mb-6">
+          <Card className="border-red-200 bg-gradient-to-r from-red-50 to-orange-50 shadow-2xl">
           <CardHeader className="bg-gradient-to-r from-red-100 to-orange-100 border-b border-red-200">
             <CardTitle className="flex items-center text-red-800">
               <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-orange-500 rounded-xl flex items-center justify-center mr-3">
@@ -473,6 +463,7 @@ const Dashboard: React.FC = () => {
             </div>
           </CardContent>
         </Card>
+        </div>
       )}
     </div>
   );
