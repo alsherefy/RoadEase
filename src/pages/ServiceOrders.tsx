@@ -46,9 +46,13 @@ const ServiceOrders: React.FC = () => {
     const customer = customers.find(c => c.id === order.customerId);
     const car = customer?.cars.find(c => c.id === order.carId);
     
-    const matchesSearch = order.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = searchTerm === '' || 
+                         order.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          customer?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         car?.make.toLowerCase().includes(searchTerm.toLowerCase());
+                         customer?.phone.includes(searchTerm) ||
+                         car?.make.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         car?.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         car?.plateNumber.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
     
@@ -239,7 +243,7 @@ const ServiceOrders: React.FC = () => {
               <div className="w-64">
                 <Input
                   type="text"
-                  placeholder="البحث في الطلبات..."
+                  placeholder="البحث باسم العميل، الجوال، الوصف، أو السيارة..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
