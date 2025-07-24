@@ -175,7 +175,7 @@ const ServiceOrders: React.FC = () => {
 
       const subtotal = invoiceItems.reduce((sum, item) => sum + item.total, 0);
       const vatAmount = subtotal * 0.15;
-      const total = subtotal + vatAmount;
+      const totalAmount = subtotal + vatAmount;
 
       addInvoice({
         invoiceNumber: `INV-${Date.now()}`,
@@ -187,12 +187,13 @@ const ServiceOrders: React.FC = () => {
         discount: 0,
         discountAmount: 0,
         vatAmount,
-        total,
+        totalAmount,
+        paymentStatus: 'unpaid',
+        paymentMethod: 'cash',
         status: 'pending',
         issueDate: new Date().toISOString().split('T')[0],
         dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        notes: `فاتورة طلب الصيانة رقم: ${completingOrder.id}`,
-        createdAt: new Date().toISOString()
+        notes: `فاتورة طلب الصيانة رقم: ${completingOrder.id}`
       });
 
       alert('تم إقفال الطلب وإنشاء الفاتورة بنجاح!');
