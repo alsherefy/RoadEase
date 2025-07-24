@@ -5,19 +5,19 @@ import { LanguageProvider } from './contexts/LanguageContext';
 import { AppProvider } from './contexts/AppContext';
 import { useAuth } from './contexts/AuthContext';
 
-import Login from '../../pages/Login';
-import Dashboard from '../../pages/Dashboard';
-import Customers from '../../pages/Customers';
-import ServiceOrders from '../../pages/ServiceOrders';
-import Inventory from '../../pages/Inventory';
-import Invoices from '../../pages/Invoices';
-import Expenses from '../../pages/Expenses';
-import Reports from '../../pages/Reports';
-import Employees from '../../pages/Employees';
-import Payroll from '../../pages/Payroll';
-import Forecast from '../../pages/Forecast';
-import Settings from '../../pages/Settings';
-import Layout from '../Layout/Layout';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import Customers from './pages/Customers';
+import ServiceOrders from './pages/ServiceOrders';
+import Inventory from './pages/Inventory';
+import Invoices from './pages/Invoices';
+import Expenses from './pages/Expenses';
+import Reports from './pages/Reports';
+import Employees from './pages/Employees';
+import Payroll from './pages/Payroll';
+import Forecast from './pages/Forecast';
+import Settings from './pages/Settings';
+import Layout from './Layout/Layout';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isLoading } = useAuth();
