@@ -449,10 +449,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const order = serviceOrders.find(o => o.id === id);
       if (order) {
         order.partsUsed.forEach(part => {
-          const inventoryItem = inventory.find(i => i.id === part.itemId);
-          if (inventoryItem) {
-            updateInventoryQuantity(part.itemId, -part.quantity);
-          }
+          updateInventoryQuantity(part.itemId, -part.quantity);
         });
       }
     }

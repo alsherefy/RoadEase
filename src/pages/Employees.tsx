@@ -80,7 +80,9 @@ const Employees: React.FC = () => {
   }
 
   function generateEmployeeId(): string {
-    const existingIds = employees.map(emp => emp.employeeId).filter(id => id && typeof id === 'string' && id.startsWith('EMP-'));
+    const existingIds = employees
+      .map(emp => emp.employeeId)
+      .filter(id => id && typeof id === 'string' && id.startsWith('EMP-'));
     const numbers = existingIds.map(id => parseInt(id.split('-')[1])).filter(num => !isNaN(num));
     const nextNumber = numbers.length > 0 ? Math.max(...numbers) + 1 : 1;
     return `EMP-${nextNumber.toString().padStart(3, '0')}`;
@@ -581,7 +583,7 @@ const Employees: React.FC = () => {
                   type="checkbox"
                   checked={value}
                   onChange={(e) => setPermissionsForm(prev => ({
-                    ...prev,
+                    ...(prev || getDefaultPermissions('employee')),
                     [key]: e.target.checked
                   }))}
                   className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"

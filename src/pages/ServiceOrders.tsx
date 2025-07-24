@@ -410,7 +410,7 @@ const ServiceOrders: React.FC = () => {
                         key={customer.id}
                         type="button"
                         onClick={() => handleCustomerSelect(customer)}
-                        className="w-full px-4 py-2 text-left hover:bg-gray-100 border-b border-gray-100 last:border-b-0"
+                        className="w-full px-4 py-2 text-right hover:bg-gray-100 border-b border-gray-100 last:border-b-0"
                       >
                         <div>
                           <p className="font-medium text-gray-900">{customer.name}</p>

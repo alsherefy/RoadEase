@@ -108,11 +108,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           createdAt: new Date(),
         }
       ];
-      // Always reset admin user to ensure correct permissions
       localStorage.setItem('roadease_users', JSON.stringify(defaultUsers));
-      console.log('Default users created:', defaultUsers);
     } else {
-      // Ensure admin user has correct role and permissions
       const existingUsers = JSON.parse(users);
       let updated = false;
       
@@ -122,8 +119,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             user.role = 'admin';
             updated = true;
           }
-          if (!user.permissions || typeof user.permissions !== 'object') {
-            user.permissions = getDefaultPermissions('admin');
+          // Always ensure admin has full permissions
+          const adminPermissions = getDefaultPermissions('admin');
+          if (!user.permissions || JSON.stringify(user.permissions) !== JSON.stringify(adminPermissions)) {
+            user.permissions = adminPermissions;
             updated = true;
           }
         }
@@ -131,7 +130,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (updated) {
         localStorage.setItem('roadease_users', JSON.stringify(existingUsers));
-        console.log('Admin user permissions updated');
       }
     }
 
@@ -140,7 +138,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (savedUser) {
       const currentUser = JSON.parse(savedUser);
       
-      // Re-verify admin user from storage
+      // Always re-verify user data from storage to ensure it's up to date
       if (currentUser.email === 'admin@roadease.com' || currentUser.employeeId === 'ADM-001') {
         const allUsers = JSON.parse(localStorage.getItem('roadease_users') || '[]');
         const adminUser = allUsers.find((u: any) => u.email === 'admin@roadease.com' || u.employeeId === 'ADM-001');
@@ -153,7 +151,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(currentUser);
         }
       } else {
-        setUser(currentUser);
+        // Re-verify employee data as well
+        const allUsers = JSON.parse(localStorage.getItem('roadease_users') || '[]');
+        const foundUser = allUsers.find((u: any) => u.id === currentUser.id);
+        
+        if (foundUser) {
+          const { password: _, ...userWithoutPassword } = foundUser;
+          setUser(userWithoutPassword);
+          localStorage.setItem('roadease_current_user', JSON.stringify(userWithoutPassword));
+        } else {
+          setUser(currentUser);
+        }
       }
     }
     setIsLoading(false);
