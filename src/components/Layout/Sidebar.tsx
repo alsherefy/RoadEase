@@ -44,20 +44,28 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   ];
 
   const filteredItems = navigationItems.filter(item => 
-    {
-      // إذا لم تكن هناك صلاحية مطلوبة، فالعنصر متاح للجميع
-      if (!item.permission) {
-        return true;
-      }
-      
-      // إذا كان المستخدم مدير، فله الوصول لكل شيء
-      if (user?.role === 'admin') {
-        return true;
-      }
-      
-      // إذا كان موظف، فحص الصلاحيات
-      return user?.permissions?.[item.permission as keyof typeof user.permissions] === true;
+  {
+    // Debug logging
+    console.log('Current user:', user);
+    console.log('User role:', user?.role);
+    console.log('User permissions:', user?.permissions);
+    
+    // إذا لم تكن هناك صلاحية مطلوبة، فالعنصر متاح للجميع
+    if (!item.permission) {
+      return true;
     }
+    
+    // إذا كان المستخدم مدير، فله الوصول لكل شيء
+    if (user?.role === 'admin') {
+      console.log('Admin access granted for:', item.label);
+      return true;
+    }
+    
+    // إذا كان موظف، فحص الصلاحيات
+    const hasPermission = user?.permissions?.[item.permission as keyof typeof user.permissions] === true;
+    console.log(`Permission check for ${item.label}:`, hasPermission);
+    return hasPermission;
+  }
   );
 
   return (

@@ -108,13 +108,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           createdAt: new Date(),
         }
       ];
+      // Always reset admin user to ensure correct permissions
       localStorage.setItem('roadease_users', JSON.stringify(defaultUsers));
+      console.log('Default users created:', defaultUsers);
+    } else {
+      // Ensure admin user has correct role and permissions
+      const existingUsers = JSON.parse(users);
+      let updated = false;
+      
+      existingUsers.forEach((user: any) => {
+        if (user.email === 'admin@roadease.com' || user.employeeId === 'ADM-001') {
+          if (user.role !== 'admin') {
+            user.role = 'admin';
+            updated = true;
+          }
+          if (!user.permissions || typeof user.permissions !== 'object') {
+            user.permissions = getDefaultPermissions('admin');
+            updated = true;
+          }
+        }
+      });
+      
+      if (updated) {
+        localStorage.setItem('roadease_users', JSON.stringify(existingUsers));
+        console.log('Admin user permissions updated');
+      }
     }
 
     // Check if user is already logged in
     const savedUser = localStorage.getItem('roadease_current_user');
     if (savedUser) {
-      setUser(JSON.parse(savedUser));
+      const currentUser = JSON.parse(savedUser);
+      
+      // Re-verify admin user from storage
+      if (currentUser.email === 'admin@roadease.com' || currentUser.employeeId === 'ADM-001') {
+        const allUsers = JSON.parse(localStorage.getItem('roadease_users') || '[]');
+        const adminUser = allUsers.find((u: any) => u.email === 'admin@roadease.com' || u.employeeId === 'ADM-001');
+        
+        if (adminUser) {
+          const { password: _, ...adminWithoutPassword } = adminUser;
+          setUser(adminWithoutPassword);
+          localStorage.setItem('roadease_current_user', JSON.stringify(adminWithoutPassword));
+        } else {
+          setUser(currentUser);
+        }
+      } else {
+        setUser(currentUser);
+      }
     }
     setIsLoading(false);
   }, []);
