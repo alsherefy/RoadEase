@@ -44,7 +44,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   ];
 
   const filteredItems = navigationItems.filter(item => 
-    !item.permission || user?.permissions?.[item.permission as keyof typeof user.permissions]
+    !item.permission || 
+    user?.role === 'admin' || 
+    user?.permissions?.[item.permission as keyof typeof user.permissions]
   );
 
   return (

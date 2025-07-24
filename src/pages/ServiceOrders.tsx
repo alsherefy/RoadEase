@@ -30,6 +30,8 @@ const ServiceOrders: React.FC = () => {
   const [completingOrder, setCompletingOrder] = useState<ServiceOrder | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [customerSearchTerm, setCustomerSearchTerm] = useState('');
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   
   const [orderForm, setOrderForm] = useState({
     customerId: '',
@@ -70,6 +72,8 @@ const ServiceOrders: React.FC = () => {
       notes: '',
       partsUsed: []
     });
+    setCustomerSearchTerm('');
+    setShowCustomerDropdown(false);
   };
 
   const handleAddOrder = () => {
@@ -80,6 +84,8 @@ const ServiceOrders: React.FC = () => {
 
   const handleEditOrder = (order: ServiceOrder) => {
     setEditingOrder(order);
+    const customer = customers.find(c => c.id === order.customerId);
+    setCustomerSearchTerm(customer?.name || '');
     setOrderForm({
       customerId: order.customerId,
       carId: order.carId,
@@ -225,6 +231,18 @@ const ServiceOrders: React.FC = () => {
 
   const selectedCustomer = customers.find(c => c.id === orderForm.customerId);
   const availableCars = selectedCustomer?.cars || [];
+  
+  // Filter customers based on search term
+  const filteredCustomers = customers.filter(customer =>
+    customer.name.toLowerCase().includes(customerSearchTerm.toLowerCase()) ||
+    customer.phone.includes(customerSearchTerm)
+  );
+  
+  const handleCustomerSelect = (customer: any) => {
+    setOrderForm({ ...orderForm, customerId: customer.id, carId: '' });
+    setCustomerSearchTerm(customer.name);
+    setShowCustomerDropdown(false);
+  };
 
   return (
     <div className="space-y-6">
@@ -369,18 +387,49 @@ const ServiceOrders: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {t('customer')}
               </label>
-              <Select
-                value={orderForm.customerId}
-                onChange={(e) => setOrderForm({ ...orderForm, customerId: e.target.value, carId: '' })}
-                required
-              >
-                <option value="">اختر العميل</option>
-                {customers.map(customer => (
-                  <option key={customer.id} value={customer.id}>
-                    {customer.name}
-                  </option>
-                ))}
-              </Select>
+              <div className="relative">
+                <Input
+                  type="text"
+                  value={customerSearchTerm}
+                  onChange={(e) => {
+                    setCustomerSearchTerm(e.target.value);
+                    setShowCustomerDropdown(true);
+                    if (e.target.value === '') {
+                      setOrderForm({ ...orderForm, customerId: '', carId: '' });
+                    }
+                  }}
+                  onFocus={() => setShowCustomerDropdown(true)}
+                  placeholder="ابحث عن العميل بالاسم أو رقم الجوال..."
+                  required
+                />
+                
+                {showCustomerDropdown && customerSearchTerm && filteredCustomers.length > 0 && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                    {filteredCustomers.slice(0, 10).map(customer => (
+                      <button
+                        key={customer.id}
+                        type="button"
+                        onClick={() => handleCustomerSelect(customer)}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 border-b border-gray-100 last:border-b-0"
+                      >
+                        <div>
+                          <p className="font-medium text-gray-900">{customer.name}</p>
+                          <p className="text-sm text-gray-600">{customer.phone}</p>
+                          {customer.email && (
+                            <p className="text-xs text-gray-500">{customer.email}</p>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                
+                {showCustomerDropdown && customerSearchTerm && filteredCustomers.length === 0 && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg p-4">
+                    <p className="text-gray-500 text-center">لا توجد نتائج</p>
+                  </div>
+                )}
+              </div>
             </div>
             
             <div>
