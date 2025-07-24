@@ -105,9 +105,9 @@ const Dashboard: React.FC = () => {
   });
 
   return (
-    <div className="space-y-4">
-      {/* Compact Welcome Header */}
-      <div className="flex items-center justify-between bg-gradient-to-r from-orange-600 to-red-500 text-white px-6 py-3 shadow-lg rounded-lg">
+    <div>
+      {/* Welcome Header - First Element */}
+      <div className="flex items-center justify-between bg-gradient-to-r from-orange-600 to-red-500 text-white px-6 py-4 shadow-lg rounded-lg mb-6">
         <div className="flex items-center space-x-4 space-x-reverse">
           <div className="w-10 h-10 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
             <Car className="h-5 w-5 text-white" />
@@ -130,7 +130,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Enhanced Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         <Card className="group hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 bg-gradient-to-br from-blue-500 to-blue-600 border-0 text-white overflow-hidden relative">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           <CardContent className="p-4 relative z-10">
@@ -219,7 +219,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Enhanced Charts Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
         {/* Revenue Chart */}
         <Card className="shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-white">
           <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-100 pb-3">
