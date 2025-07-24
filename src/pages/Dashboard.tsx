@@ -105,9 +105,9 @@ const Dashboard: React.FC = () => {
   });
 
   return (
-    <div className="space-y-8 bg-gradient-to-br from-gray-50 via-blue-50 to-orange-50 min-h-screen -m-6 p-6">
+    <div className="bg-gradient-to-br from-gray-50 via-blue-50 to-orange-50 min-h-screen -m-6">
       {/* Enhanced Welcome Header */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-orange-600 via-orange-500 to-red-500 rounded-3xl p-8 text-white shadow-2xl">
+      <div className="relative overflow-hidden bg-gradient-to-r from-orange-600 via-orange-500 to-red-500 p-8 text-white shadow-2xl">
         <div className="absolute inset-0 bg-black opacity-10"></div>
         <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-32 -mt-32"></div>
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-white opacity-5 rounded-full -ml-24 -mb-24"></div>
@@ -147,7 +147,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Enhanced Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 p-6 pt-8">
         <Card className="group hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 bg-gradient-to-br from-blue-500 to-blue-600 border-0 text-white overflow-hidden relative">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           <CardContent className="p-6 relative z-10">
@@ -236,7 +236,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Enhanced Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 px-6 pb-8">
         {/* Revenue Chart */}
         <div className="lg:col-span-2">
           <Card className="shadow-2xl hover:shadow-3xl transition-all duration-500 border-0 bg-white/80 backdrop-blur-sm">
@@ -343,7 +343,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Enhanced Bottom Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-6 pb-8">
         {/* Top Customers */}
         <Card className="shadow-2xl hover:shadow-3xl transition-all duration-500 border-0 bg-white/80 backdrop-blur-sm">
           <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-100">
@@ -435,7 +435,7 @@ const Dashboard: React.FC = () => {
 
       {/* Low Stock Alert */}
       {lowStockItems.length > 0 && (
-        <Card className="border-red-200 bg-gradient-to-r from-red-50 to-orange-50 shadow-2xl">
+        <Card className="border-red-200 bg-gradient-to-r from-red-50 to-orange-50 shadow-2xl mx-6 mb-6">
           <CardHeader className="bg-gradient-to-r from-red-100 to-orange-100 border-b border-red-200">
             <CardTitle className="flex items-center text-red-800">
               <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-orange-500 rounded-xl flex items-center justify-center mr-3">
