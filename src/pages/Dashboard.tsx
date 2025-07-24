@@ -105,19 +105,19 @@ const Dashboard: React.FC = () => {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Compact Welcome Header */}
-      <div className="flex items-center justify-between bg-gradient-to-r from-orange-600 to-red-500 text-white px-6 py-4 shadow-lg">
+      <div className="flex items-center justify-between bg-gradient-to-r from-orange-600 to-red-500 text-white px-6 py-3 shadow-lg rounded-lg">
         <div className="flex items-center space-x-4 space-x-reverse">
-          <div className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
-            <Car className="h-6 w-6 text-white" />
+          <div className="w-10 h-10 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+            <Car className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold">مرحباً، {user?.name}</h1>
-            <p className="text-orange-100 text-sm">نظام إدارة ورشة السيارات</p>
+            <h1 className="text-lg font-bold">مرحباً، {user?.name}</h1>
+            <p className="text-orange-100 text-xs">نظام إدارة ورشة السيارات</p>
           </div>
         </div>
-        <div className="hidden md:flex items-center space-x-4 space-x-reverse text-orange-100 text-sm">
+        <div className="hidden md:flex items-center space-x-4 space-x-reverse text-orange-100 text-xs">
           <div className="flex items-center space-x-2 space-x-reverse">
             <Calendar className="h-4 w-4" />
             <span>{currentDate}</span>
@@ -130,23 +130,23 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Enhanced Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="group hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 bg-gradient-to-br from-blue-500 to-blue-600 border-0 text-white overflow-hidden relative">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-          <CardContent className="p-6 relative z-10">
+          <CardContent className="p-4 relative z-10">
             <div className="flex items-center justify-between">
               <div className="space-y-2">
                 <p className="text-blue-100 font-medium">إجمالي العملاء</p>
-                <p className="text-4xl font-bold">{customers.length}</p>
+                <p className="text-3xl font-bold">{customers.length}</p>
                 <div className="flex items-center space-x-2 space-x-reverse">
                   <Car className="h-4 w-4 text-blue-200" />
-                  <p className="text-blue-200 text-sm">
+                  <p className="text-blue-200 text-xs">
                     {customers.reduce((sum, c) => sum + c.cars.length, 0)} سيارة مسجلة
                   </p>
                 </div>
               </div>
-              <div className="bg-white bg-opacity-20 p-4 rounded-2xl backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
-                <Users className="h-8 w-8 text-white" />
+              <div className="bg-white bg-opacity-20 p-3 rounded-2xl backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
+                <Users className="h-6 w-6 text-white" />
               </div>
             </div>
           </CardContent>
@@ -154,20 +154,20 @@ const Dashboard: React.FC = () => {
 
         <Card className="group hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 bg-gradient-to-br from-green-500 to-green-600 border-0 text-white overflow-hidden relative">
           <div className="absolute inset-0 bg-gradient-to-r from-green-600 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-          <CardContent className="p-6 relative z-10">
+          <CardContent className="p-4 relative z-10">
             <div className="flex items-center justify-between">
               <div className="space-y-2">
                 <p className="text-green-100 font-medium">طلبات الصيانة</p>
-                <p className="text-4xl font-bold">{serviceOrders.length}</p>
+                <p className="text-3xl font-bold">{serviceOrders.length}</p>
                 <div className="flex items-center space-x-2 space-x-reverse">
                   <AlertTriangle className="h-4 w-4 text-green-200" />
-                  <p className="text-green-200 text-sm">
+                  <p className="text-green-200 text-xs">
                     {serviceOrders.filter(o => o.status === 'open').length} طلب مفتوح
                   </p>
                 </div>
               </div>
-              <div className="bg-white bg-opacity-20 p-4 rounded-2xl backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
-                <Wrench className="h-8 w-8 text-white" />
+              <div className="bg-white bg-opacity-20 p-3 rounded-2xl backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
+                <Wrench className="h-6 w-6 text-white" />
               </div>
             </div>
           </CardContent>
@@ -175,22 +175,22 @@ const Dashboard: React.FC = () => {
 
         <Card className="group hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 bg-gradient-to-br from-purple-500 to-purple-600 border-0 text-white overflow-hidden relative">
           <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-          <CardContent className="p-6 relative z-10">
+          <CardContent className="p-4 relative z-10">
             <div className="flex items-center justify-between">
               <div className="space-y-2">
                 <p className="text-purple-100 font-medium">إيرادات اليوم</p>
-                <p className="text-4xl font-bold">
+                <p className="text-3xl font-bold">
                   {todayRevenue.toLocaleString()}
                 </p>
                 <div className="flex items-center space-x-2 space-x-reverse">
                   <FileText className="h-4 w-4 text-purple-200" />
-                  <p className="text-purple-200 text-sm">
+                  <p className="text-purple-200 text-xs">
                     {invoices.filter(i => i.createdAt.startsWith(today)).length} فاتورة اليوم
                   </p>
                 </div>
               </div>
-              <div className="bg-white bg-opacity-20 p-4 rounded-2xl backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
-                <DollarSign className="h-8 w-8 text-white" />
+              <div className="bg-white bg-opacity-20 p-3 rounded-2xl backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
+                <DollarSign className="h-6 w-6 text-white" />
               </div>
             </div>
           </CardContent>
@@ -198,20 +198,20 @@ const Dashboard: React.FC = () => {
 
         <Card className="group hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 bg-gradient-to-br from-orange-500 to-orange-600 border-0 text-white overflow-hidden relative">
           <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-          <CardContent className="p-6 relative z-10">
+          <CardContent className="p-4 relative z-10">
             <div className="flex items-center justify-between">
               <div className="space-y-2">
                 <p className="text-orange-100 font-medium">المخزون</p>
-                <p className="text-4xl font-bold">{inventory.length}</p>
+                <p className="text-3xl font-bold">{inventory.length}</p>
                 <div className="flex items-center space-x-2 space-x-reverse">
                   <AlertTriangle className="h-4 w-4 text-orange-200" />
-                  <p className="text-orange-200 text-sm">
+                  <p className="text-orange-200 text-xs">
                     {lowStockItems.length} صنف منخفض المخزون
                   </p>
                 </div>
               </div>
-              <div className="bg-white bg-opacity-20 p-4 rounded-2xl backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
-                <Package className="h-8 w-8 text-white" />
+              <div className="bg-white bg-opacity-20 p-3 rounded-2xl backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
+                <Package className="h-6 w-6 text-white" />
               </div>
             </div>
           </CardContent>
@@ -219,7 +219,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Enhanced Charts Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Revenue Chart */}
         <Card className="shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-white">
           <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-100 pb-3">

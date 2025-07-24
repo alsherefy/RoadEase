@@ -16,12 +16,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     <div className="min-h-screen bg-gray-50 relative">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <Header onMenuClick={() => setSidebarOpen(true)} />
-      <main className={`pt-16 min-h-screen transition-all duration-300 ${
+      <main className={`pt-2 min-h-screen transition-all duration-300 ${
         dir === 'rtl' 
           ? 'lg:pr-56' 
           : 'lg:pl-56'
       }`}>
-        <div className="p-6">
+        <div className="px-6 py-2">
           {children}
         </div>
       </main>
