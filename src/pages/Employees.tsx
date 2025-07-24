@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, User, Shield, Clock, Key, Settings as SettingsIcon } from 'lucide-react';
+import { Plus, Edit, Trash2, User, Shield, Clock, Key, Settings as SettingsIcon, DollarSign } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { User as UserType, UserPermissions, Allowance } from '../types';
