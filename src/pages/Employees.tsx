@@ -185,7 +185,7 @@ const Employees: React.FC = () => {
 
   const handleEditPermissions = (employee: UserType) => {
     setEditingPermissions(employee);
-    setPermissionsForm(employee.permissions);
+    setPermissionsForm(employee.permissions || getDefaultPermissions(employee.role));
     setIsPermissionsModalOpen(true);
   };
 
