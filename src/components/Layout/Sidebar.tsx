@@ -1,121 +1,109 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import { LanguageProvider } from './contexts/LanguageContext';
-import { AppProvider } from './contexts/AppContext';
-import { useAuth } from './contexts/AuthContext';
+import { NavLink } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
+import {
+  LayoutDashboard,
+  Users,
+  Wrench,
+  Package,
+  FileText,
+  Receipt,
+  BarChart3,
+  UserCheck,
+  DollarSign,
+  TrendingUp,
+  Settings,
+  LogOut
+} from 'lucide-react';
 
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import Customers from './pages/Customers';
-import ServiceOrders from './pages/ServiceOrders';
-import Inventory from './pages/Inventory';
-import Invoices from './pages/Invoices';
-import Expenses from './pages/Expenses';
-import Reports from './pages/Reports';
-import Employees from './pages/Employees';
-import Payroll from './pages/Payroll';
-import Forecast from './pages/Forecast';
-import Settings from './pages/Settings';
-import Layout from './Layout/Layout';
+const Sidebar: React.FC = () => {
+  const { user, logout } = useAuth();
+  const { t, isRTL } = useLanguage();
 
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, isLoading } = useAuth();
+  const navigationItems = [
+    { path: '/dashboard', icon: LayoutDashboard, label: 'لوحة التحكم', key: 'dashboard' },
+    { path: '/customers', icon: Users, label: 'العملاء', key: 'customers' },
+    { path: '/service-orders', icon: Wrench, label: 'أوامر الخدمة', key: 'serviceOrders' },
+    { path: '/inventory', icon: Package, label: 'المخزون', key: 'inventory' },
+    { path: '/invoices', icon: FileText, label: 'الفواتير', key: 'invoices' },
+    { path: '/expenses', icon: Receipt, label: 'المصروفات', key: 'expenses', adminOnly: true },
+    { path: '/reports', icon: BarChart3, label: 'التقارير', key: 'reports', adminOnly: true },
+    { path: '/employees', icon: UserCheck, label: 'الموظفين', key: 'employees', adminOnly: true },
+    { path: '/payroll', icon: DollarSign, label: 'الرواتب', key: 'payroll', adminOnly: true },
+    { path: '/forecast', icon: TrendingUp, label: 'التوقعات', key: 'forecast', adminOnly: true },
+    { path: '/settings', icon: Settings, label: 'الإعدادات', key: 'settings', adminOnly: true },
+  ];
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">جاري التحميل...</p>
+  const filteredItems = navigationItems.filter(item => 
+    !item.adminOnly || user?.role === 'admin'
+  );
+
+  return (
+    <div className="h-full bg-gradient-to-b from-gray-900 to-gray-800 text-white">
+      <div className="p-6">
+        <div className="flex items-center space-x-3 space-x-reverse">
+          <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
+            <Wrench className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold">ورشة السيارات</h1>
+            <p className="text-sm text-gray-300">نظام إدارة متكامل</p>
+          </div>
         </div>
       </div>
-    );
-  }
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
+      <nav className="mt-8">
+        <div className="px-4 space-y-2">
+          {filteredItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <NavLink
+                key={item.key}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
+                    isActive
+                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg'
+                      : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  }`
+                }
+              >
+                <Icon className="w-5 h-5 ml-3" />
+                {item.label}
+              </NavLink>
+            );
+          })}
+        </div>
+      </nav>
 
-  return <Layout>{children}</Layout>;
+      <div className="absolute bottom-0 left-0 right-0 p-4">
+        <div className="bg-gray-700 rounded-lg p-4 mb-4">
+          <div className="flex items-center space-x-3 space-x-reverse">
+            <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center">
+              <span className="text-sm font-bold text-white">
+                {user?.name?.charAt(0) || 'U'}
+              </span>
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-white">{user?.name}</p>
+              <p className="text-xs text-gray-300">
+                {user?.role === 'admin' ? 'مدير' : 'موظف'}
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <button
+          onClick={logout}
+          className="w-full flex items-center px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white rounded-lg transition-all duration-200"
+        >
+          <LogOut className="w-5 h-5 ml-3" />
+          تسجيل الخروج
+        </button>
+      </div>
+    </div>
+  );
 };
 
-function AppRoutes() {
-  return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/dashboard" element={
-        <ProtectedRoute>
-          <Dashboard />
-        </ProtectedRoute>
-      } />
-      <Route path="/customers" element={
-        <ProtectedRoute>
-          <Customers />
-        </ProtectedRoute>
-      } />
-      <Route path="/service-orders" element={
-        <ProtectedRoute>
-          <ServiceOrders />
-        </ProtectedRoute>
-      } />
-      <Route path="/inventory" element={
-        <ProtectedRoute>
-          <Inventory />
-        </ProtectedRoute>
-      } />
-      <Route path="/invoices" element={
-        <ProtectedRoute>
-          <Invoices />
-        </ProtectedRoute>
-      } />
-      <Route path="/expenses" element={
-        <ProtectedRoute>
-          <Expenses />
-        </ProtectedRoute>
-      } />
-      <Route path="/reports" element={
-        <ProtectedRoute>
-          <Reports />
-        </ProtectedRoute>
-      } />
-      <Route path="/employees" element={
-        <ProtectedRoute>
-          <Employees />
-        </ProtectedRoute>
-      } />
-      <Route path="/payroll" element={
-        <ProtectedRoute>
-          <Payroll />
-        </ProtectedRoute>
-      } />
-      <Route path="/forecast" element={
-        <ProtectedRoute>
-          <Forecast />
-        </ProtectedRoute>
-      } />
-      <Route path="/settings" element={
-        <ProtectedRoute>
-          <Settings />
-        </ProtectedRoute>
-      } />
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-    </Routes>
-  );
-}
-
-function App() {
-  return (
-    <LanguageProvider>
-      <AuthProvider>
-        <AppProvider>
-          <Router>
-            <AppRoutes />
-          </Router>
-        </AppProvider>
-      </AuthProvider>
-    </LanguageProvider>
-  );
-}
-
-export default App;
+export default Sidebar;
