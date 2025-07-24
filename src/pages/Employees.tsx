@@ -274,7 +274,7 @@ const Employees: React.FC = () => {
   };
 
   // Only managers can access this page
-  if (user?.role !== 'admin') {
+  if (!user?.permissions?.employees) {
     return (
       <div className="text-center py-8">
         <Shield className="h-16 w-16 text-gray-400 mx-auto mb-4" />
@@ -362,6 +362,7 @@ const Employees: React.FC = () => {
                 <option value="all">جميع الأدوار</option>
                 <option value="admin">مدير</option>
                 <option value="employee">موظف</option>
+                <option value="technician">فني</option>
               </Select>
             </div>
           </div>

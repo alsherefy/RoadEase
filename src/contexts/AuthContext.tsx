@@ -83,6 +83,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           role: 'employee' as const,
           permissions: getDefaultPermissions('employee'),
           createdAt: new Date(),
+        },
+        {
+          id: '3',
+          employeeId: 'TECH-001',
+          name: 'فني الصيانة',
+          email: 'tech@roadease.com',
+          password: 'tech123',
+          role: 'employee' as const,
+          permissions: {
+            customers: false,
+            serviceOrders: true,
+            inventory: false,
+            invoices: false,
+            expenses: false,
+            reports: false,
+            employees: false,
+            settings: false,
+            financialReports: false,
+            profitAnalysis: false,
+            payroll: false,
+            workshopRent: false,
+          },
+          createdAt: new Date(),
         }
       ];
       localStorage.setItem('roadease_users', JSON.stringify(defaultUsers));

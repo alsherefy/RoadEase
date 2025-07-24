@@ -42,7 +42,7 @@ const Settings: React.FC = () => {
   ];
 
   // Only managers can access settings
-  if (user?.role !== 'manager') {
+  if (!user?.permissions?.settings) {
     return (
       <div className="text-center py-8">
         <Globe className="h-16 w-16 text-gray-400 mx-auto mb-4" />

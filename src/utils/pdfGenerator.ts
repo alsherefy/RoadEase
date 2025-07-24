@@ -166,8 +166,8 @@ export const generateInvoicePDF = async (invoice: Invoice, customer: Customer, s
 const getPaymentMethodText = (method: string): string => {
   switch (method) {
     case 'cash': return 'Cash / نقداً';
-    case 'mada': return 'Mada Card / بطاقة مدى';
-    case 'visa': return 'Visa Card / فيزا';
+    case 'mada': return 'Mada / مدى';
+    case 'visa': return 'Visa / فيزا';
     default: return 'Cash / نقداً';
   }
 };

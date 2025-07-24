@@ -17,9 +17,9 @@ import {
   LogOut
 } from 'lucide-react';
 
-const Sidebar: React.FC = () => {
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { user, logout } = useAuth();
-  const { t, isRTL } = useLanguage();
+  const { t, language } = useLanguage();
 
   const navigationItems = [
     { path: '/dashboard', icon: LayoutDashboard, label: 'لوحة التحكم', key: 'dashboard' },
@@ -30,13 +30,13 @@ const Sidebar: React.FC = () => {
     { path: '/expenses', icon: Receipt, label: 'المصروفات', key: 'expenses', adminOnly: true },
     { path: '/reports', icon: BarChart3, label: 'التقارير', key: 'reports', adminOnly: true },
     { path: '/employees', icon: UserCheck, label: 'الموظفين', key: 'employees', adminOnly: true },
-    { path: '/payroll', icon: DollarSign, label: 'الرواتب', key: 'payroll', adminOnly: true },
-    { path: '/forecast', icon: TrendingUp, label: 'التوقعات', key: 'forecast', adminOnly: true },
-    { path: '/settings', icon: Settings, label: 'الإعدادات', key: 'settings', adminOnly: true },
+    { path: '/payroll', icon: DollarSign, label: 'الرواتب', key: 'payroll', permission: 'payroll' },
+    { path: '/forecast', icon: TrendingUp, label: 'التوقعات', key: 'forecast', permission: 'financialReports' },
+    { path: '/settings', icon: Settings, label: 'الإعدادات', key: 'settings', permission: 'settings' },
   ];
 
   const filteredItems = navigationItems.filter(item => 
-    !item.adminOnly || user?.role === 'admin'
+    !item.permission || user?.permissions?.[item.permission as keyof typeof user.permissions]
   );
 
   return (

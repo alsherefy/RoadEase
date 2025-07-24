@@ -43,7 +43,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
             <div className={`text-sm ${dir === 'rtl' ? 'text-right' : 'text-left'} hidden sm:block`}>
               <p className="font-medium text-gray-800">{user?.name}</p>
               <p className="text-gray-500 text-xs">
-                {user?.role === 'manager' ? 'مدير' : user?.role === 'employee' ? 'موظف' : 'فني'}
+                {user?.role === 'admin' ? 'مدير' : 'موظف'}
               </p>
             </div>
             <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">

@@ -236,7 +236,7 @@ const Invoices: React.FC = () => {
   const getPaymentMethodText = (method: string) => {
     switch (method) {
       case 'cash': return 'نقداً';
-      case 'mada': return 'بطاقة مدى';
+      case 'mada': return 'مدى';
       case 'visa': return 'فيزا';
       default: return 'نقداً';
     }
@@ -522,7 +522,7 @@ const Invoices: React.FC = () => {
                 onChange={(e) => setInvoiceForm({ ...invoiceForm, paymentMethod: e.target.value as 'cash' | 'mada' | 'visa' })}
               >
                 <option value="cash">نقداً</option>
-                <option value="mada">بطاقة مدى</option>
+                <option value="mada">مدى</option>
                 <option value="visa">فيزا</option>
               </Select>
             </div>
