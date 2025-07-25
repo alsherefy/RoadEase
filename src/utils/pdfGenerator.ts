@@ -144,12 +144,13 @@ const createInvoiceHTML = async (invoice: Invoice, customer: Customer, settings:
         }
         
         .invoice-title {
-          background: #1f2937;
-          color: white;
+          background: transparent;
+          color: #1f2937;
           padding: 15px;
           text-align: center;
           font-size: 18px;
           font-weight: 600;
+          border-bottom: 2px solid #e5e7eb;
         }
         
         .invoice-details {
@@ -245,10 +246,10 @@ const createInvoiceHTML = async (invoice: Invoice, customer: Customer, settings:
         }
         
         .final-total {
-          border-top: 2px solid #1f2937;
+          border-top: 2px solid #e5e7eb;
           font-size: 16px;
           font-weight: 700;
-          color: #059669;
+          color: #1f2937;
         }
         
         .qr-section {
@@ -285,21 +286,21 @@ const createInvoiceHTML = async (invoice: Invoice, customer: Customer, settings:
         .notes-section {
           margin-top: 20px;
           padding: 15px;
-          background: #fef3c7;
+          background: transparent;
           border-radius: 8px;
-          border-right: 4px solid #f59e0b;
+          border: 1px solid #e5e7eb;
         }
         
         .notes-title {
           font-size: 12px;
           font-weight: 600;
-          color: #92400e;
+          color: #1f2937;
           margin-bottom: 8px;
         }
         
         .notes-content {
           font-size: 11px;
-          color: #78350f;
+          color: #374151;
           line-height: 1.5;
         }
         
