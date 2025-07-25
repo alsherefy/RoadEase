@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Customer, Car, ServiceOrder, InventoryItem, Invoice, Expense, Settings, DashboardStats } from '../types';
+import { saudiVehicleDatabase } from '../data/saudiVehicles';
 
 interface AppContextType {
   customers: Customer[];
@@ -9,6 +10,7 @@ interface AppContextType {
   expenses: Expense[];
   settings: Settings;
   dashboardStats: DashboardStats;
+  vehicleDatabase: typeof saudiVehicleDatabase;
   
   // Customer methods
   addCustomer: (customer: Omit<Customer, 'id' | 'createdAt'>) => void;
@@ -43,6 +45,9 @@ interface AppContextType {
   // Settings methods
   updateSettings: (settings: Partial<Settings>) => void;
   
+  // Vehicle database methods
+  addCustomVehicleMake: (make: string) => void;
+  addCustomVehicleModel: (makeId: string, model: string) => void;
   refreshDashboard: () => void;
 }
 
@@ -64,6 +69,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [vehicleDatabase, setVehicleDatabase] = useState(saudiVehicleDatabase);
   const [settings, setSettings] = useState<Settings>({
     workshopName: 'ROAD EASE',
     address: 'الرياض، المملكة العربية السعودية',
@@ -102,6 +108,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const savedInvoices = localStorage.getItem('roadease_invoices');
     const savedExpenses = localStorage.getItem('roadease_expenses');
     const savedSettings = localStorage.getItem('roadease_settings');
+    const savedVehicleDb = localStorage.getItem('roadease_vehicle_database');
 
     if (savedCustomers) setCustomers(JSON.parse(savedCustomers));
     if (savedOrders) setServiceOrders(JSON.parse(savedOrders));
@@ -111,6 +118,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (savedExpenses) setExpenses(JSON.parse(savedExpenses));
     if (savedSettings) setSettings({ ...settings, ...JSON.parse(savedSettings) });
     else initializeSampleData();
+    if (savedVehicleDb) setVehicleDatabase(JSON.parse(savedVehicleDb));
   }, []);
 
   const initializeInventory = () => {
@@ -528,6 +536,37 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setSettings(prev => ({ ...prev, ...settingsData }));
   };
 
+  // Vehicle database methods
+  const addCustomVehicleMake = (make: string) => {
+    const newMake = {
+      id: make.toLowerCase().replace(/\s+/g, '-'),
+      name: make,
+      nameEn: make,
+      models: []
+    };
+    
+    const updatedDb = [...vehicleDatabase, newMake];
+    setVehicleDatabase(updatedDb);
+    localStorage.setItem('roadease_vehicle_database', JSON.stringify(updatedDb));
+  };
+
+  const addCustomVehicleModel = (makeId: string, model: string) => {
+    const newModel = {
+      id: model.toLowerCase().replace(/\s+/g, '-'),
+      name: model,
+      nameEn: model,
+      years: Array.from({ length: 15 }, (_, i) => new Date().getFullYear() - i)
+    };
+    
+    const updatedDb = vehicleDatabase.map(make => 
+      make.id === makeId 
+        ? { ...make, models: [...make.models, newModel] }
+        : make
+    );
+    
+    setVehicleDatabase(updatedDb);
+    localStorage.setItem('roadease_vehicle_database', JSON.stringify(updatedDb));
+  };
   return (
     <AppContext.Provider value={{
       customers,
@@ -537,6 +576,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       expenses,
       settings,
       dashboardStats,
+      vehicleDatabase,
       addCustomer,
       updateCustomer,
       deleteCustomer,
@@ -556,6 +596,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       updateExpense,
       deleteExpense,
       updateSettings,
+      addCustomVehicleMake,
+      addCustomVehicleModel,
       refreshDashboard,
     }}>
       {children}

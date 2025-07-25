@@ -7,17 +7,31 @@ import { Card, CardHeader, CardContent, CardTitle } from '../components/UI/Card'
 import Button from '../components/UI/Button';
 import Modal from '../components/UI/Modal';
 import Input from '../components/UI/Input';
+import Select from '../components/UI/Select';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/UI/Table';
 
 const Customers: React.FC = () => {
   const { t } = useLanguage();
-  const { customers, addCustomer, updateCustomer, deleteCustomer, addCar } = useApp();
+  const { 
+    customers, 
+    addCustomer, 
+    updateCustomer, 
+    deleteCustomer, 
+    addCar,
+    vehicleDatabase,
+    addCustomVehicleMake,
+    addCustomVehicleModel
+  } = useApp();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCarModalOpen, setIsCarModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showAddNewMake, setShowAddNewMake] = useState(false);
+  const [showAddNewModel, setShowAddNewModel] = useState(false);
+  const [newMakeName, setNewMakeName] = useState('');
+  const [newModelName, setNewModelName] = useState('');
   
   const [customerForm, setCustomerForm] = useState({
     name: '',
@@ -28,6 +42,7 @@ const Customers: React.FC = () => {
   
   const [carForm, setCarForm] = useState({
     make: '',
+    makeId: '',
     model: '',
     year: new Date().getFullYear(),
     color: '',
@@ -54,6 +69,7 @@ const Customers: React.FC = () => {
   const resetCarForm = () => {
     setCarForm({
       make: '',
+      makeId: '',
       model: '',
       year: new Date().getFullYear(),
       color: '',
@@ -61,6 +77,10 @@ const Customers: React.FC = () => {
       chassisNumber: '',
       mileage: 0
     });
+    setShowAddNewMake(false);
+    setShowAddNewModel(false);
+    setNewMakeName('');
+    setNewModelName('');
   };
 
   const handleAddCustomer = () => {
@@ -121,6 +141,18 @@ const Customers: React.FC = () => {
     e.preventDefault();
     
     if (selectedCustomer) {
+      // If adding new make
+      if (showAddNewMake && newMakeName) {
+        addCustomVehicleMake(newMakeName);
+        setCarForm(prev => ({ ...prev, make: newMakeName }));
+      }
+      
+      // If adding new model
+      if (showAddNewModel && newModelName && carForm.makeId) {
+        addCustomVehicleModel(carForm.makeId, newModelName);
+        setCarForm(prev => ({ ...prev, model: newModelName }));
+      }
+      
       addCar({
         customerId: selectedCustomer.id,
         make: carForm.make,
@@ -138,6 +170,60 @@ const Customers: React.FC = () => {
     setSelectedCustomer(null);
   };
 
+  const handleMakeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    
+    if (value === 'add_new') {
+      setShowAddNewMake(true);
+      setCarForm(prev => ({ ...prev, make: '', makeId: '', model: '' }));
+    } else if (value === '') {
+      setCarForm(prev => ({ ...prev, make: '', makeId: '', model: '' }));
+      setShowAddNewMake(false);
+    } else {
+      const selectedMake = vehicleDatabase.find(make => make.id === value);
+      if (selectedMake) {
+        setCarForm(prev => ({ 
+          ...prev, 
+          make: selectedMake.name, 
+          makeId: selectedMake.id,
+          model: '' 
+        }));
+        setShowAddNewMake(false);
+      }
+    }
+    setShowAddNewModel(false);
+  };
+
+  const handleModelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    
+    if (value === 'add_new') {
+      setShowAddNewModel(true);
+      setCarForm(prev => ({ ...prev, model: '' }));
+    } else if (value === '') {
+      setCarForm(prev => ({ ...prev, model: '' }));
+      setShowAddNewModel(false);
+    } else {
+      setCarForm(prev => ({ ...prev, model: value }));
+      setShowAddNewModel(false);
+    }
+  };
+
+  const getAvailableModels = () => {
+    if (!carForm.makeId) return [];
+    const selectedMake = vehicleDatabase.find(make => make.id === carForm.makeId);
+    return selectedMake ? selectedMake.models : [];
+  };
+
+  const getAvailableYears = () => {
+    const availableModels = getAvailableModels();
+    if (availableModels.length === 0) {
+      return Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i);
+    }
+    
+    const selectedModel = availableModels.find(model => model.name === carForm.model);
+    return selectedModel ? selectedModel.years : Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i);
+  };
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -314,57 +400,122 @@ const Customers: React.FC = () => {
         isOpen={isCarModalOpen}
         onClose={() => setIsCarModalOpen(false)}
         title="إضافة سيارة جديدة"
+        size="lg"
       >
         <form onSubmit={handleSubmitCar} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('carMake')}
-              </label>
-              <Input
-                type="text"
-                value={carForm.make}
-                onChange={(e) => setCarForm({ ...carForm, make: e.target.value })}
-                required
-              />
-            </div>
+          {/* Make Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              ماركة السيارة
+            </label>
+            <Select
+              value={carForm.makeId}
+              onChange={handleMakeChange}
+              required={!showAddNewMake}
+            >
+              <option value="">اختر الماركة</option>
+              {vehicleDatabase.map(make => (
+                <option key={make.id} value={make.id}>
+                  {make.name}
+                </option>
+              ))}
+              <option value="add_new">+ إضافة ماركة جديدة</option>
+            </Select>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('carModel')}
-              </label>
-              <Input
-                type="text"
-                value={carForm.model}
-                onChange={(e) => setCarForm({ ...carForm, model: e.target.value })}
-                required
-              />
-            </div>
+            {showAddNewMake && (
+              <div className="mt-2">
+                <Input
+                  type="text"
+                  value={newMakeName}
+                  onChange={(e) => {
+                    setNewMakeName(e.target.value);
+                    setCarForm(prev => ({ ...prev, make: e.target.value }));
+                  }}
+                  placeholder="أدخل اسم الماركة الجديدة"
+                  required
+                />
+              </div>
+            )}
           </div>
 
+          {/* Model Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              موديل السيارة
+            </label>
+            <Select
+              value={carForm.model}
+              onChange={handleModelChange}
+              required={!showAddNewModel}
+              disabled={!carForm.makeId && !showAddNewMake}
+            >
+              <option value="">اختر الموديل</option>
+              {getAvailableModels().map(model => (
+                <option key={model.id} value={model.name}>
+                  {model.name}
+                </option>
+              ))}
+              {(carForm.makeId || showAddNewMake) && (
+                <option value="add_new">+ إضافة موديل جديد</option>
+              )}
+            </Select>
+            
+            {showAddNewModel && (
+              <div className="mt-2">
+                <Input
+                  type="text"
+                  value={newModelName}
+                  onChange={(e) => {
+                    setNewModelName(e.target.value);
+                    setCarForm(prev => ({ ...prev, model: e.target.value }));
+                  }}
+                  placeholder="أدخل اسم الموديل الجديد"
+                  required
+                />
+              </div>
+            )}
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('carYear')}
+                سنة الصنع
               </label>
-              <Input
-                type="number"
+              <Select
                 value={carForm.year}
                 onChange={(e) => setCarForm({ ...carForm, year: parseInt(e.target.value) })}
                 required
-              />
+              >
+                {getAvailableYears().map(year => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </Select>
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('carColor')}
+                لون السيارة
               </label>
-              <Input
-                type="text"
+              <Select
                 value={carForm.color}
                 onChange={(e) => setCarForm({ ...carForm, color: e.target.value })}
                 required
-              />
+              >
+                <option value="">اختر اللون</option>
+                <option value="أبيض">أبيض</option>
+                <option value="أسود">أسود</option>
+                <option value="رمادي">رمادي</option>
+                <option value="أحمر">أحمر</option>
+                <option value="أزرق">أزرق</option>
+                <option value="أخضر">أخضر</option>
+                <option value="فضي">فضي</option>
+                <option value="ذهبي">ذهبي</option>
+                <option value="بيج">بيج</option>
+                <option value="بني">بني</option>
+                <option value="برتقالي">برتقالي</option>
+                <option value="أصفر">أصفر</option>
+              </Select>
             </div>
           </div>
 
@@ -376,6 +527,7 @@ const Customers: React.FC = () => {
               type="text"
               value={carForm.plateNumber}
               onChange={(e) => setCarForm({ ...carForm, plateNumber: e.target.value })}
+              placeholder="أ ب ج 123"
               required
             />
           </div>
@@ -388,21 +540,32 @@ const Customers: React.FC = () => {
               type="text"
               value={carForm.chassisNumber}
               onChange={(e) => setCarForm({ ...carForm, chassisNumber: e.target.value })}
+              placeholder="رقم هيكل السيارة"
               required
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('mileage')}
+              عداد الكيلومترات
             </label>
             <Input
               type="number"
               value={carForm.mileage}
               onChange={(e) => setCarForm({ ...carForm, mileage: parseInt(e.target.value) })}
+              placeholder="مثال: 50000"
               required
             />
           </div>
+
+          {(showAddNewMake || showAddNewModel) && (
+            <div className="bg-blue-50 p-3 rounded-lg">
+              <p className="text-sm text-blue-800">
+                {showAddNewMake && 'سيتم إضافة الماركة الجديدة إلى قاعدة البيانات لاستخدامها لاحقاً.'}
+                {showAddNewModel && 'سيتم إضافة الموديل الجديد إلى قاعدة البيانات لاستخدامها لاحقاً.'}
+              </p>
+            </div>
+          )}
 
           <div className="flex justify-end space-x-3 mt-6">
             <Button
