@@ -335,7 +335,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       monthDate.setMonth(monthDate.getMonth() - i);
       const month = monthDate.getMonth();
       const year = monthDate.getFullYear();
-          const inventoryItem = inventory.find(i => i.id === part.itemId);
       return invoices
         .filter(invoice => {
           const invoiceDate = new Date(invoice.createdAt);

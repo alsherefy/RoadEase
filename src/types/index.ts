@@ -131,7 +131,7 @@ export interface Invoice {
   issueDate: string;
   dueDate: string;
   notes?: string;
-  createdAt: string;
+  createdAt: Date | string;
 }
 
 export interface InvoiceItem {

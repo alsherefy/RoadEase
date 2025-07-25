@@ -163,7 +163,7 @@ const ServiceOrders: React.FC = () => {
           total: completingOrder.laborCost
         },
         ...completingOrder.partsUsed.map(part => {
-          const inventoryItem = inventory.find(i => i.id === part.itemId);
+          const inventoryItem = inventory.find(item => item.id === part.itemId);
           return {
             description: inventoryItem?.name || 'قطعة غيار',
             quantity: part.quantity,
