@@ -74,14 +74,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Check for existing users on mount
   useEffect(() => {
-    const users = localStorage.getItem('roadease_users');
+    const initializeDefaultAdmin = async () => {
+      let users = JSON.parse(localStorage.getItem('roadease_users') || '[]');
+      
+      // إنشاء حساب المدير الافتراضي إذا لم يكن موجوداً
+      const adminExists = users.find((u: any) => u.username === 'admin');
+      
+      if (!adminExists) {
+        const hashedPassword = await hashPassword('admin');
+        const defaultAdmin = {
+          id: 'admin-default',
+          employeeId: 'ADMIN-001',
+          username: 'admin',
+          name: 'مدير النظام',
+          email: 'admin@roadease.com',
+          role: 'admin',
+          phone: '',
+          permissions: getDefaultPermissions('admin'),
+          password: hashedPassword,
+          createdAt: new Date(),
+        };
+        
+        users.push(defaultAdmin);
+        localStorage.setItem('roadease_users', JSON.stringify(users));
+        
+        console.log('تم إنشاء حساب المدير الافتراضي: admin/admin');
+      }
+      
+      return users;
+    };
     
-    if (users) {
-      const existingUsers = JSON.parse(users);
+    initializeDefaultAdmin().then((existingUsers) => {
       let updated = false;
       
       existingUsers.forEach((user: any) => {
-        if (user.email === 'admin' || user.employeeId === 'ADMIN') {
+        if (user.username === 'admin' || user.employeeId === 'ADMIN-001') {
           if (user.role !== 'admin') {
             user.role = 'admin';
             updated = true;
@@ -98,47 +125,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (updated) {
         localStorage.setItem('roadease_users', JSON.stringify(existingUsers));
       }
-    }
 
-    // Check if user is already logged in
-    const savedUser = localStorage.getItem('roadease_current_user');
-    const savedSession = localStorage.getItem('roadease_session');
-    
-    if (savedUser && savedSession) {
-      const currentUser = JSON.parse(savedUser);
-      const session = JSON.parse(savedSession);
+      // Check if user is already logged in
+      const savedUser = localStorage.getItem('roadease_current_user');
+      const savedSession = localStorage.getItem('roadease_session');
       
-      // Check if session is expired
-      if (isSessionExpired(session.loginTime, 8)) {
-        logSecurityEvent({
-          type: 'logout',
-          userId: currentUser.id,
-          username: currentUser.email,
-          details: 'Session expired'
-        });
-        logout();
-        setIsLoading(false);
-        return;
-      }
-      
-      // Always re-verify user data from storage to ensure it's up to date
-      if (currentUser.email === 'admin' || currentUser.employeeId === 'ADMIN') {
-        const allUsers = JSON.parse(localStorage.getItem('roadease_users') || '[]');
-        const adminUser = allUsers.find((u: any) => u.email === 'admin' || u.employeeId === 'ADMIN');
+      if (savedUser && savedSession) {
+        const currentUser = JSON.parse(savedUser);
+        const session = JSON.parse(savedSession);
         
-        if (adminUser) {
-          const { password: _, ...adminWithoutPassword } = adminUser;
-          setUser(adminWithoutPassword);
-          setSessionData(session);
-          localStorage.setItem('roadease_current_user', JSON.stringify(adminWithoutPassword));
-        } else {
-          setUser(currentUser);
-          setSessionData(session);
+        // Check if session is expired
+        if (isSessionExpired(session.loginTime, 8)) {
+          logSecurityEvent({
+            type: 'logout',
+            userId: currentUser.id,
+            username: currentUser.username,
+            details: 'Session expired'
+          });
+          logout();
+          setIsLoading(false);
+          return;
         }
-      } else {
-        // Re-verify employee data as well
+        
+        // Re-verify user data from storage
         const allUsers = JSON.parse(localStorage.getItem('roadease_users') || '[]');
-        const foundUser = allUsers.find((u: any) => u.id === currentUser.id);
+        const foundUser = allUsers.find((u: any) => u.id === currentUser.id || u.username === currentUser.username);
         
         if (foundUser) {
           const { password: _, ...userWithoutPassword } = foundUser;
@@ -150,8 +161,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setSessionData(session);
         }
       }
-    }
-    setIsLoading(false);
+      
+      setIsLoading(false);
+    }).catch((error) => {
+      console.error('Error initializing admin:', error);
+      setIsLoading(false);
+    });
   }, []);
 
   const setupInitialAdmin = async (adminData: { name: string; email: string; username: string; password: string }): Promise<boolean> => {
@@ -242,11 +257,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     const sanitizedIdentifier = sanitizeInput(identifier);
     const users = JSON.parse(localStorage.getItem('roadease_users') || '[]');
+    
+    console.log('محاولة تسجيل دخول:', sanitizedIdentifier);
+    console.log('المستخدمون المتاحون:', users.map((u: any) => ({ username: u.username, email: u.email, employeeId: u.employeeId })));
+    
     const foundUser = users.find((u: any) => 
       u.username === sanitizedIdentifier || 
       u.email === sanitizedIdentifier || 
       u.employeeId === sanitizedIdentifier
     );
+    
+    console.log('المستخدم الموجود:', foundUser ? { username: foundUser.username, role: foundUser.role } : 'غير موجود');
     
     if (foundUser && await verifyPassword(password, foundUser.password)) {
       // Clear rate limit on successful login
@@ -276,9 +297,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         details: 'Successful login'
       });
       
+      console.log('تسجيل دخول ناجح');
       setIsLoading(false);
       return true;
     } else {
+      console.log('فشل في تسجيل الدخول - كلمة مرور خاطئة أو مستخدم غير موجود');
       // Log failed login attempt
       logSecurityEvent({
         type: 'failed_login',
