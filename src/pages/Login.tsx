@@ -9,21 +9,22 @@ import Input from '../components/UI/Input';
 import Modal from '../components/UI/Modal';
 
 const Login: React.FC = () => {
-  const [loginType, setLoginType] = useState<'email' | 'employeeId'>('email');
-  const [emailOrId, setEmailOrId] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
-  const [resetEmployeeId, setResetEmployeeId] = useState('');
+  const [resetUsername, setResetUsername] = useState('');
   const [resetEmail, setResetEmail] = useState('');
+  const [resetPhone, setResetPhone] = useState('');
   const [resetToken, setResetToken] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [resetStep, setResetStep] = useState<'request' | 'reset'>('request');
   const [passwordStrength, setPasswordStrength] = useState<{ score: number; errors: string[] }>({ score: 0, errors: [] });
   const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
+  const [resetContactType, setResetContactType] = useState<'email' | 'phone'>('email');
   
-  const { user, login, loginWithEmployeeId, requestPasswordReset, resetPassword, isLoading } = useAuth();
+  const { user, login, requestPasswordReset, resetPassword, isLoading } = useAuth();
   const { t, language, setLanguage } = useLanguage();
 
   // Check if initial setup is needed
@@ -84,11 +85,12 @@ const Login: React.FC = () => {
     e.preventDefault();
     
     if (resetStep === 'request') {
-      const success = await requestPasswordReset(resetEmployeeId, resetEmail);
+      const contactInfo = resetContactType === 'email' ? resetEmail : resetPhone;
+      const success = await requestPasswordReset(resetUsername, contactInfo, resetContactType);
       if (success) {
         setResetStep('reset');
       } else {
-        alert('لم يتم العثور على موظف بهذه البيانات');
+        alert('لم يتم العثور على مستخدم بهذه البيانات');
       }
     } else {
       const success = await resetPassword(resetToken, newPassword);
@@ -96,8 +98,9 @@ const Login: React.FC = () => {
         alert('تم تغيير كلمة المرور بنجاح');
         setIsResetModalOpen(false);
         setResetStep('request');
-        setResetEmployeeId('');
+        setResetUsername('');
         setResetEmail('');
+        setResetPhone('');
         setResetToken('');
         setNewPassword('');
       } else {
