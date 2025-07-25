@@ -366,8 +366,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <AuthContext.Provider value={{ 
       user, 
       setupInitialAdmin,
-      login, 
-      loginWithEmployeeId, 
+      login,
       logout, 
       requestPasswordReset, 
       resetPassword, 

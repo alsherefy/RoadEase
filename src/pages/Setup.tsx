@@ -31,7 +31,8 @@ const Setup: React.FC = () => {
 
   // Check if admin already exists
   const existingUsers = JSON.parse(localStorage.getItem('roadease_users') || '[]');
-  if (existingUsers.length > 0) {
+  const adminExists = existingUsers.find((u: any) => u.username === 'admin');
+  if (adminExists) {
     return <Navigate to="/login" replace />;
   }
 

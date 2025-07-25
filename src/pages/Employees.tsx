@@ -563,6 +563,19 @@ const Employees: React.FC = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
+                اسم المستخدم
+              </label>
+              <Input
+                type="text"
+                value={employeeForm.username}
+                onChange={(e) => setEmployeeForm({ ...employeeForm, username: e.target.value })}
+                placeholder="اسم المستخدم الفريد"
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 البريد الإلكتروني
               </label>
               <Input
@@ -572,19 +585,19 @@ const Employees: React.FC = () => {
                 required
               />
             </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                رقم الهاتف
-              </label>
-              <Input
-                type="tel"
-                value={employeeForm.phone}
-                onChange={(e) => setEmployeeForm({ ...employeeForm, phone: e.target.value })}
-              />
-            </div>
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              رقم الهاتف
+            </label>
+            <Input
+              type="tel"
+              value={employeeForm.phone}
+              onChange={(e) => setEmployeeForm({ ...employeeForm, phone: e.target.value })}
+              placeholder="+966 50 123 4567"
+            />
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
