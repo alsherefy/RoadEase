@@ -202,23 +202,10 @@ const Invoices: React.FC = () => {
   const handleDownloadPDF = (invoice: Invoice) => {
     const customer = customers.find(c => c.id === invoice.customerId);
     if (customer) {
-      // Show loading state
-      const originalText = 'تحميل PDF';
-      const button = document.querySelector(`[data-invoice-id="${invoice.id}"]`) as HTMLButtonElement;
-      if (button) {
-        button.textContent = 'جاري التحميل...';
-        button.disabled = true;
-      }
-      
-      generateInvoicePDF(invoice, customer, settings);
-      
-      // Reset button state
-      setTimeout(() => {
-        if (button) {
-          button.textContent = originalText;
-          button.disabled = false;
-        }
-      }, 2000);
+      generateInvoicePDF(invoice, customer, settings).catch(error => {
+        console.error('Error generating PDF:', error);
+        alert('حدث خطأ في إنشاء ملف PDF');
+      });
     }
   };
 
