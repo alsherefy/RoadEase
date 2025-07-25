@@ -44,5 +44,8 @@ export function formatSaudiDateTime(date: Date): string {
 }
 
 export function formatSaudiCurrency(amount: number): string {
-  return amount.toFixed(2);
+  return amount.toLocaleString('en-US', { 
+    minimumFractionDigits: 2, 
+    maximumFractionDigits: 2 
+  });
 }

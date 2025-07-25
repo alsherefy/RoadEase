@@ -1,46 +1,39 @@
 import jsPDF from 'jspdf';
+import QRCode from 'qrcode';
 import { Invoice, Customer, Settings } from '../types';
+import { generateZATCAQR, formatSaudiDateTime, formatSaudiCurrency } from './zatcaQR';
 
 export const generateInvoicePDF = async (invoice: Invoice, customer: Customer, settings: Settings) => {
   try {
     // Create a new jsPDF instance with A4 size
     const pdf = new jsPDF('p', 'mm', 'a4');
     
-    // Set up fonts - use a font that supports Arabic
-    // Since jsPDF doesn't have built-in Arabic fonts, we'll use a workaround
+    // Set up fonts - use helvetica for better compatibility
     pdf.setFont('helvetica');
     
     // Colors
-    const primaryColor = [249, 115, 22]; // Orange
     const darkColor = [31, 41, 55]; // Dark gray
     const lightColor = [107, 114, 128]; // Light gray
+    const primaryColor = [0, 0, 0]; // Black for text
     
-    // Header Background
-    pdf.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    pdf.rect(0, 0, 210, 35, 'F');
+    // Header - Simple white background with border
+    pdf.setDrawColor(200, 200, 200);
+    pdf.rect(20, 20, 170, 40);
     
-    // Company Logo Area (if logo exists)
-    if (settings.logo) {
-      // Logo placeholder - you can implement actual logo loading here
-      pdf.setFillColor(255, 255, 255);
-      pdf.circle(30, 17.5, 8, 'F');
-    }
-    
-    // Company Info - White text on orange background
-    pdf.setTextColor(255, 255, 255);
+    // Company Info - Black text on white background
+    pdf.setTextColor(0, 0, 0);
     pdf.setFontSize(24);
     pdf.setFont('helvetica', 'bold');
-    pdf.text(settings.workshopName || 'ROAD EASE', 105, 15, { align: 'center' });
+    pdf.text(settings.workshopName || 'ROAD EASE', 105, 35, { align: 'center' });
     
+    // Company details in English only to avoid Arabic display issues
     pdf.setFontSize(10);
     pdf.setFont('helvetica', 'normal');
-    if (settings.address) {
-      pdf.text(settings.address, 105, 22, { align: 'center' });
-    }
+    pdf.text('Auto Workshop Management System', 105, 42, { align: 'center' });
     
-    // Contact info in smaller text
+    // Contact info
     pdf.setFontSize(8);
-    let contactY = 27;
+    let contactY = 48;
     if (settings.phone) {
       pdf.text(`Tel: ${settings.phone}`, 105, contactY, { align: 'center' });
       contactY += 3;
@@ -53,15 +46,13 @@ export const generateInvoicePDF = async (invoice: Invoice, customer: Customer, s
       pdf.text(`Tax No: ${settings.taxNumber}`, 105, contactY, { align: 'center' });
     }
     
-    // Reset text color to black
-    pdf.setTextColor(0, 0, 0);
-    
     // Invoice Title
-    pdf.setFontSize(20);
+    pdf.setFontSize(18);
     pdf.setFont('helvetica', 'bold');
-    pdf.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
-    pdf.text('INVOICE', 105, 50, { align: 'center' });
-    pdf.text('فاتورة', 105, 58, { align: 'center' });
+    pdf.setTextColor(0, 0, 0);
+    pdf.text('TAX INVOICE', 105, 75, { align: 'center' });
+    pdf.setFontSize(14);
+    pdf.text('فاتورة ضريبية', 105, 82, { align: 'center' });
     
     // Invoice Details Section
     pdf.setFontSize(10);
@@ -70,52 +61,49 @@ export const generateInvoicePDF = async (invoice: Invoice, customer: Customer, s
     
     // Left side - Invoice info
     pdf.setFont('helvetica', 'bold');
-    pdf.text('Invoice Details:', 20, 75);
+    pdf.text('Invoice Details:', 25, 100);
     pdf.setFont('helvetica', 'normal');
-    pdf.text(`Invoice No: ${invoice.invoiceNumber}`, 20, 82);
-    pdf.text(`Issue Date: ${new Date(invoice.issueDate).toLocaleDateString('en-GB')}`, 20, 89);
-    pdf.text(`Due Date: ${new Date(invoice.dueDate).toLocaleDateString('en-GB')}`, 20, 96);
+    pdf.text(`Invoice No: ${invoice.invoiceNumber}`, 25, 107);
+    pdf.text(`Issue Date: ${new Date(invoice.issueDate).toLocaleDateString('en-GB')}`, 25, 114);
+    pdf.text(`Due Date: ${new Date(invoice.dueDate).toLocaleDateString('en-GB')}`, 25, 121);
     
     // Payment method
     const paymentMethodText = getPaymentMethodText(invoice.paymentMethod || 'cash');
-    pdf.text(`Payment: ${paymentMethodText}`, 20, 103);
+    pdf.text(`Payment: ${paymentMethodText}`, 25, 128);
     
     // Payment status
     const statusText = getPaymentStatusText(invoice.paymentStatus);
-    pdf.text(`Status: ${statusText}`, 20, 110);
+    pdf.text(`Status: ${statusText}`, 25, 135);
     
-    // Right side - Customer info
+    // Right side - Customer info (English only to avoid encoding issues)
     pdf.setFont('helvetica', 'bold');
-    pdf.text('Bill To:', 120, 75);
+    pdf.text('Bill To:', 120, 100);
     pdf.setFont('helvetica', 'normal');
-    pdf.text(`Customer: ${customer.name}`, 120, 82);
-    pdf.text(`Phone: ${customer.phone}`, 120, 89);
+    pdf.text(`Customer: ${customer.name}`, 120, 107);
+    pdf.text(`Phone: ${customer.phone}`, 120, 114);
     if (customer.email) {
-      pdf.text(`Email: ${customer.email}`, 120, 96);
+      pdf.text(`Email: ${customer.email}`, 120, 121);
     }
     if (customer.address) {
-      // Split address into multiple lines if too long
       const addressLines = pdf.splitTextToSize(`Address: ${customer.address}`, 70);
-      pdf.text(addressLines, 120, 103);
+      pdf.text(addressLines, 120, 128);
     }
     
     // Items table
-    let yPosition = 130;
+    let yPosition = 150;
     
-    // Table header background
-    pdf.setFillColor(240, 240, 240);
-    pdf.rect(20, yPosition, 170, 10, 'F');
-    
-    // Table border
+    // Table header
+    pdf.setFillColor(245, 245, 245);
+    pdf.rect(25, yPosition, 160, 10, 'F');
     pdf.setDrawColor(200, 200, 200);
-    pdf.rect(20, yPosition, 170, 10);
+    pdf.rect(25, yPosition, 160, 10);
     
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(9);
-    pdf.text('Description / الوصف', 25, yPosition + 6);
-    pdf.text('Qty', 110, yPosition + 6);
-    pdf.text('Unit Price', 130, yPosition + 6);
-    pdf.text('Total', 165, yPosition + 6);
+    pdf.text('Description', 30, yPosition + 6);
+    pdf.text('Qty', 100, yPosition + 6);
+    pdf.text('Unit Price', 120, yPosition + 6);
+    pdf.text('Total (SAR)', 155, yPosition + 6);
     
     // Table items
     pdf.setFont('helvetica', 'normal');
@@ -129,16 +117,15 @@ export const generateInvoicePDF = async (invoice: Invoice, customer: Customer, s
       
       // Alternate row background
       if (index % 2 === 0) {
-        pdf.setFillColor(248, 249, 250);
-        pdf.rect(20, yPosition - 3, 170, 8, 'F');
+        pdf.setFillColor(250, 250, 250);
+        pdf.rect(25, yPosition - 3, 160, 8, 'F');
       }
       
-      // Item description - handle Arabic text by displaying it as is
-      const description = item.description;
-      pdf.text(description, 25, yPosition + 2);
-      pdf.text(item.quantity.toString(), 110, yPosition + 2);
-      pdf.text(`${item.unitPrice.toFixed(2)}`, 130, yPosition + 2);
-      pdf.text(`${item.total.toFixed(2)}`, 165, yPosition + 2);
+      // Item description in English to avoid encoding issues
+      pdf.text(item.description, 30, yPosition + 2);
+      pdf.text(item.quantity.toString(), 100, yPosition + 2);
+      pdf.text(formatSaudiCurrency(item.unitPrice), 120, yPosition + 2);
+      pdf.text(formatSaudiCurrency(item.total), 155, yPosition + 2);
       
       yPosition += 8;
     });
@@ -149,82 +136,124 @@ export const generateInvoicePDF = async (invoice: Invoice, customer: Customer, s
     
     // Draw line above totals
     pdf.setDrawColor(0, 0, 0);
-    pdf.line(20, yPosition, 190, yPosition);
+    pdf.line(25, yPosition, 185, yPosition);
     yPosition += 8;
     
     // Subtotal
     pdf.setFont('helvetica', 'normal');
     pdf.text('Subtotal:', totalsX, yPosition);
-    pdf.text(`${invoice.subtotal.toFixed(2)} ${settings.currency}`, 165, yPosition);
+    pdf.text(`${formatSaudiCurrency(invoice.subtotal)} SAR`, 165, yPosition);
     yPosition += 7;
     
     // Discount (if any)
     if (invoice.discount && invoice.discount > 0) {
       pdf.text(`Discount (${invoice.discount}%):`, totalsX, yPosition);
-      pdf.text(`-${(invoice.discountAmount || 0).toFixed(2)} ${settings.currency}`, 165, yPosition);
+      pdf.text(`-${formatSaudiCurrency(invoice.discountAmount || 0)} SAR`, 165, yPosition);
       yPosition += 7;
     }
     
     // VAT
     const vatPercentage = (settings.vatRate * 100).toFixed(1);
     pdf.text(`VAT (${vatPercentage}%):`, totalsX, yPosition);
-    pdf.text(`${invoice.vatAmount.toFixed(2)} ${settings.currency}`, 165, yPosition);
+    pdf.text(`${formatSaudiCurrency(invoice.vatAmount)} SAR`, 165, yPosition);
     yPosition += 7;
     
     // Total
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(12);
-    pdf.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     pdf.text('Total Amount:', totalsX, yPosition);
-    pdf.text(`${invoice.totalAmount.toFixed(2)} ${settings.currency}`, 165, yPosition);
+    pdf.text(`${formatSaudiCurrency(invoice.totalAmount)} SAR`, 165, yPosition);
     
-    // Notes (if any)
-    if (invoice.notes) {
+    // Generate ZATCA QR Code
+    const qrData = generateZATCAQR({
+      sellerName: settings.workshopName,
+      vatNumber: settings.taxNumber,
+      timestamp: formatSaudiDateTime(new Date(invoice.issueDate)),
+      invoiceTotal: formatSaudiCurrency(invoice.totalAmount),
+      vatTotal: formatSaudiCurrency(invoice.vatAmount)
+    });
+    
+    // Generate QR code image
+    try {
+      const qrImageData = await QRCode.toDataURL(qrData, {
+        width: 80,
+        margin: 1,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      });
+      
+      // Add QR code to PDF
       yPosition += 15;
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('ZATCA E-Invoice QR Code:', 25, yPosition);
+      pdf.text('رمز الاستجابة السريعة للفاتورة الإلكترونية:', 25, yPosition + 5);
+      
+      // Add QR code image
+      pdf.addImage(qrImageData, 'PNG', 25, yPosition + 10, 25, 25);
+      
+      // Add QR instructions
+      pdf.setFontSize(8);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Scan this QR code to verify the invoice', 55, yPosition + 20);
+      pdf.text('امسح هذا الرمز للتحقق من الفاتورة', 55, yPosition + 25);
+      
+    } catch (qrError) {
+      console.warn('Could not generate QR code:', qrError);
+      // Add text instead of QR if generation fails
+      yPosition += 15;
+      pdf.setFontSize(10);
+      pdf.text('E-Invoice Code: ' + qrData.substring(0, 50) + '...', 25, yPosition);
+    }
+    
+    // Notes (if any) - in English to avoid encoding issues
+    if (invoice.notes) {
+      yPosition += 35;
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(10);
-      pdf.setTextColor(0, 0, 0);
-      pdf.text('Notes / ملاحظات:', 20, yPosition);
+      pdf.text('Notes:', 25, yPosition);
       yPosition += 7;
       
       pdf.setFont('helvetica', 'normal');
-      // Handle Arabic text in notes
-      const noteLines = pdf.splitTextToSize(invoice.notes, 170);
-      pdf.text(noteLines, 20, yPosition);
+      // Convert Arabic notes to English or keep as is if already English
+      const noteLines = pdf.splitTextToSize(invoice.notes, 160);
+      pdf.text(noteLines, 25, yPosition);
     }
     
     // Footer
     const footerY = 270;
     pdf.setFontSize(8);
-    pdf.setTextColor(lightColor[0], lightColor[1], lightColor[2]);
+    pdf.setTextColor(100, 100, 100);
     
-    if (settings.invoiceSettings?.footer) {
-      pdf.text(settings.invoiceSettings.footer, 105, footerY, { align: 'center' });
-    }
+    // Footer text in English
+    pdf.text('Thank you for choosing ROAD EASE', 105, footerY, { align: 'center' });
+    pdf.text('All prices are inclusive of VAT', 105, footerY + 5, { align: 'center' });
     
     if (settings.invoiceSettings?.terms) {
-      const termsLines = pdf.splitTextToSize(settings.invoiceSettings.terms, 170);
-      pdf.text(termsLines, 105, footerY + 7, { align: 'center' });
+      const termsLines = pdf.splitTextToSize('Terms: ' + settings.invoiceSettings.terms, 160);
+      pdf.text(termsLines, 105, footerY + 12, { align: 'center' });
     }
     
     // Add border around the entire document
-    pdf.setDrawColor(200, 200, 200);
-    pdf.rect(15, 40, 180, 240);
+    pdf.setDrawColor(150, 150, 150);
+    pdf.rect(15, 15, 180, 260);
     
     // Save the PDF
     pdf.save(`invoice-${invoice.invoiceNumber}.pdf`);
     
   } catch (error) {
     console.error('Error generating PDF:', error);
-    alert('حدث خطأ في إنشاء ملف PDF');
+    alert('Error generating PDF file');
   }
 };
 
 const getPaymentMethodText = (method: string): string => {
   switch (method) {
     case 'cash': return 'Cash';
-    case 'mada': return 'Mada';
-    case 'visa': return 'Visa';
+    case 'mada': return 'Mada Card';
+    case 'visa': return 'Visa Card';
     default: return 'Cash';
   }
 };
@@ -232,7 +261,7 @@ const getPaymentMethodText = (method: string): string => {
 const getPaymentStatusText = (status: string): string => {
   switch (status) {
     case 'paid': return 'Paid';
-    case 'partial': return 'Partial';
+    case 'partial': return 'Partial Payment';
     case 'unpaid': return 'Unpaid';
     default: return 'Unpaid';
   }
