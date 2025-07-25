@@ -6,81 +6,120 @@ export const generateInvoicePDF = async (invoice: Invoice, customer: Customer, s
     // Create a new jsPDF instance with A4 size
     const pdf = new jsPDF('p', 'mm', 'a4');
     
-    // Set up fonts and colors
+    // Set up fonts - use a font that supports Arabic
+    // Since jsPDF doesn't have built-in Arabic fonts, we'll use a workaround
     pdf.setFont('helvetica');
     
-    // Header - Company Info
-    pdf.setFontSize(20);
-    pdf.setTextColor(40, 40, 40);
-    pdf.text(settings.workshopName || 'ROAD EASE', 105, 20, { align: 'center' });
+    // Colors
+    const primaryColor = [249, 115, 22]; // Orange
+    const darkColor = [31, 41, 55]; // Dark gray
+    const lightColor = [107, 114, 128]; // Light gray
     
-    pdf.setFontSize(12);
-    pdf.setTextColor(100, 100, 100);
-    if (settings.address) {
-      pdf.text(settings.address, 105, 30, { align: 'center' });
+    // Header Background
+    pdf.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    pdf.rect(0, 0, 210, 35, 'F');
+    
+    // Company Logo Area (if logo exists)
+    if (settings.logo) {
+      // Logo placeholder - you can implement actual logo loading here
+      pdf.setFillColor(255, 255, 255);
+      pdf.circle(30, 17.5, 8, 'F');
     }
+    
+    // Company Info - White text on orange background
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFontSize(24);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text(settings.workshopName || 'ROAD EASE', 105, 15, { align: 'center' });
+    
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    if (settings.address) {
+      pdf.text(settings.address, 105, 22, { align: 'center' });
+    }
+    
+    // Contact info in smaller text
+    pdf.setFontSize(8);
+    let contactY = 27;
     if (settings.phone) {
-      pdf.text(`Tel: ${settings.phone}`, 105, 37, { align: 'center' });
+      pdf.text(`Tel: ${settings.phone}`, 105, contactY, { align: 'center' });
+      contactY += 3;
     }
     if (settings.email) {
-      pdf.text(`Email: ${settings.email}`, 105, 44, { align: 'center' });
+      pdf.text(`Email: ${settings.email}`, 105, contactY, { align: 'center' });
+      contactY += 3;
     }
     if (settings.taxNumber) {
-      pdf.text(`Tax No: ${settings.taxNumber}`, 105, 51, { align: 'center' });
+      pdf.text(`Tax No: ${settings.taxNumber}`, 105, contactY, { align: 'center' });
     }
     
-    // Invoice Title
-    pdf.setFontSize(18);
-    pdf.setTextColor(40, 40, 40);
-    pdf.text('INVOICE / فاتورة', 105, 65, { align: 'center' });
+    // Reset text color to black
+    pdf.setTextColor(0, 0, 0);
     
-    // Invoice Details
-    pdf.setFontSize(11);
-    pdf.setTextColor(60, 60, 60);
+    // Invoice Title
+    pdf.setFontSize(20);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
+    pdf.text('INVOICE', 105, 50, { align: 'center' });
+    pdf.text('فاتورة', 105, 58, { align: 'center' });
+    
+    // Invoice Details Section
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(0, 0, 0);
     
     // Left side - Invoice info
-    pdf.text(`Invoice No: ${invoice.invoiceNumber}`, 20, 80);
-    pdf.text(`Issue Date: ${new Date(invoice.issueDate).toLocaleDateString()}`, 20, 87);
-    pdf.text(`Due Date: ${new Date(invoice.dueDate).toLocaleDateString()}`, 20, 94);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Invoice Details:', 20, 75);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(`Invoice No: ${invoice.invoiceNumber}`, 20, 82);
+    pdf.text(`Issue Date: ${new Date(invoice.issueDate).toLocaleDateString('en-GB')}`, 20, 89);
+    pdf.text(`Due Date: ${new Date(invoice.dueDate).toLocaleDateString('en-GB')}`, 20, 96);
     
     // Payment method
     const paymentMethodText = getPaymentMethodText(invoice.paymentMethod || 'cash');
-    pdf.text(`Payment Method: ${paymentMethodText}`, 20, 101);
+    pdf.text(`Payment: ${paymentMethodText}`, 20, 103);
     
     // Payment status
     const statusText = getPaymentStatusText(invoice.paymentStatus);
-    pdf.text(`Status: ${statusText}`, 20, 108);
+    pdf.text(`Status: ${statusText}`, 20, 110);
     
     // Right side - Customer info
-    pdf.text('Bill To:', 120, 80);
     pdf.setFont('helvetica', 'bold');
-    pdf.text(customer.name, 120, 87);
+    pdf.text('Bill To:', 120, 75);
     pdf.setFont('helvetica', 'normal');
-    pdf.text(`Phone: ${customer.phone}`, 120, 94);
+    pdf.text(`Customer: ${customer.name}`, 120, 82);
+    pdf.text(`Phone: ${customer.phone}`, 120, 89);
     if (customer.email) {
-      pdf.text(`Email: ${customer.email}`, 120, 101);
+      pdf.text(`Email: ${customer.email}`, 120, 96);
     }
     if (customer.address) {
-      pdf.text(`Address: ${customer.address}`, 120, 108);
+      // Split address into multiple lines if too long
+      const addressLines = pdf.splitTextToSize(`Address: ${customer.address}`, 70);
+      pdf.text(addressLines, 120, 103);
     }
     
     // Items table
-    let yPosition = 125;
+    let yPosition = 130;
     
-    // Table header
+    // Table header background
     pdf.setFillColor(240, 240, 240);
-    pdf.rect(20, yPosition, 170, 8, 'F');
+    pdf.rect(20, yPosition, 170, 10, 'F');
+    
+    // Table border
+    pdf.setDrawColor(200, 200, 200);
+    pdf.rect(20, yPosition, 170, 10);
     
     pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(10);
-    pdf.text('Description', 25, yPosition + 5);
-    pdf.text('Qty', 110, yPosition + 5);
-    pdf.text('Unit Price', 130, yPosition + 5);
-    pdf.text('Total', 165, yPosition + 5);
+    pdf.setFontSize(9);
+    pdf.text('Description / الوصف', 25, yPosition + 6);
+    pdf.text('Qty', 110, yPosition + 6);
+    pdf.text('Unit Price', 130, yPosition + 6);
+    pdf.text('Total', 165, yPosition + 6);
     
     // Table items
     pdf.setFont('helvetica', 'normal');
-    yPosition += 12;
+    yPosition += 15;
     
     invoice.items.forEach((item, index) => {
       if (yPosition > 250) {
@@ -88,23 +127,33 @@ export const generateInvoicePDF = async (invoice: Invoice, customer: Customer, s
         yPosition = 20;
       }
       
-      pdf.text(item.description, 25, yPosition);
-      pdf.text(item.quantity.toString(), 110, yPosition);
-      pdf.text(`${item.unitPrice.toFixed(2)} ${settings.currency}`, 130, yPosition);
-      pdf.text(`${item.total.toFixed(2)} ${settings.currency}`, 165, yPosition);
+      // Alternate row background
+      if (index % 2 === 0) {
+        pdf.setFillColor(248, 249, 250);
+        pdf.rect(20, yPosition - 3, 170, 8, 'F');
+      }
       
-      yPosition += 7;
+      // Item description - handle Arabic text by displaying it as is
+      const description = item.description;
+      pdf.text(description, 25, yPosition + 2);
+      pdf.text(item.quantity.toString(), 110, yPosition + 2);
+      pdf.text(`${item.unitPrice.toFixed(2)}`, 130, yPosition + 2);
+      pdf.text(`${item.total.toFixed(2)}`, 165, yPosition + 2);
+      
+      yPosition += 8;
     });
     
     // Totals section
     yPosition += 10;
-    const totalsX = 130;
+    const totalsX = 120;
     
     // Draw line above totals
+    pdf.setDrawColor(0, 0, 0);
     pdf.line(20, yPosition, 190, yPosition);
     yPosition += 8;
     
     // Subtotal
+    pdf.setFont('helvetica', 'normal');
     pdf.text('Subtotal:', totalsX, yPosition);
     pdf.text(`${invoice.subtotal.toFixed(2)} ${settings.currency}`, 165, yPosition);
     yPosition += 7;
@@ -125,34 +174,42 @@ export const generateInvoicePDF = async (invoice: Invoice, customer: Customer, s
     // Total
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(12);
+    pdf.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     pdf.text('Total Amount:', totalsX, yPosition);
     pdf.text(`${invoice.totalAmount.toFixed(2)} ${settings.currency}`, 165, yPosition);
     
     // Notes (if any)
     if (invoice.notes) {
       yPosition += 15;
-      pdf.setFont('helvetica', 'normal');
+      pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(10);
-      pdf.text('Notes:', 20, yPosition);
+      pdf.setTextColor(0, 0, 0);
+      pdf.text('Notes / ملاحظات:', 20, yPosition);
       yPosition += 7;
       
-      // Split notes into multiple lines if needed
+      pdf.setFont('helvetica', 'normal');
+      // Handle Arabic text in notes
       const noteLines = pdf.splitTextToSize(invoice.notes, 170);
       pdf.text(noteLines, 20, yPosition);
     }
     
     // Footer
-    const footerY = 280;
-    pdf.setFontSize(9);
-    pdf.setTextColor(120, 120, 120);
+    const footerY = 270;
+    pdf.setFontSize(8);
+    pdf.setTextColor(lightColor[0], lightColor[1], lightColor[2]);
     
     if (settings.invoiceSettings?.footer) {
       pdf.text(settings.invoiceSettings.footer, 105, footerY, { align: 'center' });
     }
     
     if (settings.invoiceSettings?.terms) {
-      pdf.text(settings.invoiceSettings.terms, 105, footerY + 7, { align: 'center' });
+      const termsLines = pdf.splitTextToSize(settings.invoiceSettings.terms, 170);
+      pdf.text(termsLines, 105, footerY + 7, { align: 'center' });
     }
+    
+    // Add border around the entire document
+    pdf.setDrawColor(200, 200, 200);
+    pdf.rect(15, 40, 180, 240);
     
     // Save the PDF
     pdf.save(`invoice-${invoice.invoiceNumber}.pdf`);
@@ -165,18 +222,18 @@ export const generateInvoicePDF = async (invoice: Invoice, customer: Customer, s
 
 const getPaymentMethodText = (method: string): string => {
   switch (method) {
-    case 'cash': return 'Cash / نقداً';
-    case 'mada': return 'Mada / مدى';
-    case 'visa': return 'Visa / فيزا';
-    default: return 'Cash / نقداً';
+    case 'cash': return 'Cash';
+    case 'mada': return 'Mada';
+    case 'visa': return 'Visa';
+    default: return 'Cash';
   }
 };
 
 const getPaymentStatusText = (status: string): string => {
   switch (status) {
-    case 'paid': return 'Paid / مدفوع';
-    case 'partial': return 'Partial / جزئي';
-    case 'unpaid': return 'Unpaid / غير مدفوع';
-    default: return 'Unpaid / غير مدفوع';
+    case 'paid': return 'Paid';
+    case 'partial': return 'Partial';
+    case 'unpaid': return 'Unpaid';
+    default: return 'Unpaid';
   }
 };
