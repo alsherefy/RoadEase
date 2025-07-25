@@ -72,7 +72,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [vehicleDatabase, setVehicleDatabase] = useState(saudiVehicleDatabase);
   const [settings, setSettings] = useState<Settings>({
     workshopName: 'ROAD EASE',
-    address: 'الرياض، المملكة العربية السعودية',
+    address: 'الجبيل، المملكة العربية السعودية',
     phone: '+966 11 123 4567',
     email: 'info@roadease.com',
     taxNumber: '123456789',
