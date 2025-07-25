@@ -187,13 +187,6 @@ const Login: React.FC = () => {
             </button>
           </div>
 
-          <div className="mt-6 sm:mt-8 p-3 sm:p-4 bg-gray-50 rounded-lg">
-            <h3 className="font-medium text-gray-900 mb-2">حساب المدير:</h3>
-            <div className="text-xs sm:text-sm text-gray-600 space-y-1">
-              <p>المدير: admin / admin</p>
-              <p>يمكنك تغيير كلمة المرور من الإعدادات</p>
-            </div>
-          </div>
         </div>
       </div>
 
