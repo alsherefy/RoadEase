@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { Car, Eye, EyeOff, Mail, Key } from 'lucide-react';
+import { Car, Eye, EyeOff, Mail, Key, Shield, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { validatePasswordStrength } from '../utils/security';
 import Button from '../components/UI/Button';
 import Input from '../components/UI/Input';
 import Modal from '../components/UI/Modal';
@@ -19,6 +20,8 @@ const Login: React.FC = () => {
   const [resetToken, setResetToken] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [resetStep, setResetStep] = useState<'request' | 'reset'>('request');
+  const [passwordStrength, setPasswordStrength] = useState<{ score: number; errors: string[] }>({ score: 0, errors: [] });
+  const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
   
   const { user, login, loginWithEmployeeId, requestPasswordReset, resetPassword, isLoading } = useAuth();
   const { t, language, setLanguage } = useLanguage();
@@ -37,6 +40,11 @@ const Login: React.FC = () => {
     e.preventDefault();
     setError('');
     
+    if (!emailOrId.trim() || !password.trim()) {
+      setError('جميع الحقول مطلوبة');
+      return;
+    }
+    
     let success = false;
     
     if (loginType === 'email') {
@@ -48,6 +56,28 @@ const Login: React.FC = () => {
     if (!success) {
       setError('بيانات الدخول غير صحيحة');
     }
+  };
+
+  const handlePasswordChange = (newPassword: string) => {
+    setPassword(newPassword);
+    if (newPassword.length > 0) {
+      const strength = validatePasswordStrength(newPassword);
+      setPasswordStrength({ score: strength.score, errors: strength.errors });
+    } else {
+      setPasswordStrength({ score: 0, errors: [] });
+    }
+  };
+
+  const getPasswordStrengthColor = (score: number) => {
+    if (score < 40) return 'bg-red-500';
+    if (score < 70) return 'bg-yellow-500';
+    return 'bg-green-500';
+  };
+
+  const getPasswordStrengthText = (score: number) => {
+    if (score < 40) return 'ضعيف';
+    if (score < 70) return 'متوسط';
+    return 'قوي';
   };
 
   const handlePasswordReset = async (e: React.FormEvent) => {
@@ -148,7 +178,9 @@ const Login: React.FC = () => {
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => handlePasswordChange(e.target.value)}
+                  onFocus={() => setShowPasswordRequirements(true)}
+                  onBlur={() => setShowPasswordRequirements(false)}
                   placeholder="أدخل كلمة المرور"
                   required
                 />
@@ -164,6 +196,37 @@ const Login: React.FC = () => {
                   )}
                 </button>
               </div>
+              
+              {/* Password strength indicator for new passwords */}
+              {password.length > 0 && showPasswordRequirements && (
+                <div className="mt-2 p-3 bg-gray-50 rounded-md">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-medium text-gray-700">قوة كلمة المرور:</span>
+                    <span className={`text-xs font-bold ${
+                      passwordStrength.score < 40 ? 'text-red-600' :
+                      passwordStrength.score < 70 ? 'text-yellow-600' : 'text-green-600'
+                    }`}>
+                      {getPasswordStrengthText(passwordStrength.score)}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className={`h-2 rounded-full transition-all duration-300 ${getPasswordStrengthColor(passwordStrength.score)}`}
+                      style={{ width: `${passwordStrength.score}%` }}
+                    />
+                  </div>
+                  {passwordStrength.errors.length > 0 && (
+                    <div className="mt-2">
+                      {passwordStrength.errors.map((error, index) => (
+                        <div key={index} className="flex items-center text-xs text-red-600 mt-1">
+                          <AlertTriangle className="h-3 w-3 mr-1" />
+                          {error}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {error && (
@@ -190,6 +253,20 @@ const Login: React.FC = () => {
             >
               نسيت كلمة المرور؟
             </button>
+          </div>
+
+          {/* Security Notice */}
+          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+            <div className="flex items-center mb-2">
+              <Shield className="h-4 w-4 text-blue-600 mr-2" />
+              <span className="text-sm font-medium text-blue-900">أمان محسن</span>
+            </div>
+            <ul className="text-xs text-blue-800 space-y-1">
+              <li>• تشفير كلمات المرور</li>
+              <li>• جلسات آمنة مع انتهاء صلاحية</li>
+              <li>• حماية من محاولات الدخول المتكررة</li>
+              <li>• سجل أمني لجميع العمليات</li>
+            </ul>
           </div>
 
         </div>

@@ -1,5 +1,17 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, UserPermissions } from '../types';
+import { User, UserPermissions, SessionData } from '../types';
+import { 
+  hashPassword, 
+  verifyPassword, 
+  generateSessionToken, 
+  validatePasswordStrength,
+  sanitizeInput,
+  isSessionExpired,
+  logSecurityEvent,
+  checkRateLimit,
+  clearRateLimit,
+  generateEmployeeId
+} from '../utils/security';
 
 interface AuthContextType {
   user: User | null;
@@ -25,6 +37,7 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [sessionData, setSessionData] = useState<SessionData | null>(null);
 
   const getDefaultPermissions = (role: 'admin' | 'employee'): UserPermissions => {
     if (role === 'admin') {
@@ -90,8 +103,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Check if user is already logged in
     const savedUser = localStorage.getItem('roadease_current_user');
-    if (savedUser) {
+    const savedSession = localStorage.getItem('roadease_session');
+    
+    if (savedUser && savedSession) {
       const currentUser = JSON.parse(savedUser);
+      const session = JSON.parse(savedSession);
+      
+      // Check if session is expired
+      if (isSessionExpired(session.loginTime, 8)) {
+        logSecurityEvent({
+          type: 'logout',
+          userId: currentUser.id,
+          username: currentUser.email,
+          details: 'Session expired'
+        });
+        logout();
+        setIsLoading(false);
+        return;
+      }
       
       // Always re-verify user data from storage to ensure it's up to date
       if (currentUser.email === 'admin' || currentUser.employeeId === 'ADMIN') {
@@ -101,9 +130,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (adminUser) {
           const { password: _, ...adminWithoutPassword } = adminUser;
           setUser(adminWithoutPassword);
+          setSessionData(session);
           localStorage.setItem('roadease_current_user', JSON.stringify(adminWithoutPassword));
         } else {
           setUser(currentUser);
+          setSessionData(session);
         }
       } else {
         // Re-verify employee data as well
@@ -113,9 +144,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (foundUser) {
           const { password: _, ...userWithoutPassword } = foundUser;
           setUser(userWithoutPassword);
+          setSessionData(session);
           localStorage.setItem('roadease_current_user', JSON.stringify(userWithoutPassword));
         } else {
           setUser(currentUser);
+          setSessionData(session);
         }
       }
     }
@@ -124,6 +157,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const setupInitialAdmin = async (adminData: { name: string; email: string; username: string; password: string }): Promise<boolean> => {
     setIsLoading(true);
+    
+    // Validate password strength
+    const passwordValidation = validatePasswordStrength(adminData.password);
+    if (!passwordValidation.isValid) {
+      alert('كلمة المرور ضعيفة: ' + passwordValidation.errors.join(', '));
+      setIsLoading(false);
+      return false;
+    }
     
     // Check if any users already exist
     const existingUsers = JSON.parse(localStorage.getItem('roadease_users') || '[]');
@@ -136,24 +177,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     try {
+      const hashedPassword = await hashPassword(adminData.password);
+      
       const newAdmin: User = {
         id: '1',
         employeeId: 'ADMIN-001',
-        name: adminData.name,
-        email: adminData.username, // Use username as email for login
+        name: sanitizeInput(adminData.name),
+        email: sanitizeInput(adminData.username), // Use username as email for login
         role: 'admin',
         phone: '',
         permissions: getDefaultPermissions('admin'),
         createdAt: new Date(),
       };
       
+      // Create session
+      const sessionToken = generateSessionToken();
+      const sessionData: SessionData = {
+        userId: newAdmin.id,
+        token: sessionToken,
+        loginTime: new Date().toISOString(),
+        lastActivity: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString() // 8 hours
+      };
+      
       // Save admin with password
-      const adminWithPassword = { ...newAdmin, password: adminData.password };
+      const adminWithPassword = { ...newAdmin, password: hashedPassword };
       localStorage.setItem('roadease_users', JSON.stringify([adminWithPassword]));
       
       // Set current user (without password)
       setUser(newAdmin);
+      setSessionData(sessionData);
       localStorage.setItem('roadease_current_user', JSON.stringify(newAdmin));
+      localStorage.setItem('roadease_session', JSON.stringify(sessionData));
+      
+      // Log security event
+      logSecurityEvent({
+        type: 'login',
+        userId: newAdmin.id,
+        username: newAdmin.email,
+        details: 'Initial admin setup'
+      });
       
       setIsLoading(false);
       return true;
@@ -166,18 +229,59 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     
+    // Check rate limiting
+    const rateLimit = checkRateLimit(email, 5, 15);
+    if (!rateLimit.allowed) {
+      const resetTime = rateLimit.resetTime?.toLocaleTimeString('ar-SA') || 'قريباً';
+      alert(`تم تجاوز عدد محاولات تسجيل الدخول. حاول مرة أخرى في: ${resetTime}`);
+      setIsLoading(false);
+      return false;
+    }
+    
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     
+    const sanitizedEmail = sanitizeInput(email);
     const users = JSON.parse(localStorage.getItem('roadease_users') || '[]');
-    const foundUser = users.find((u: any) => u.email === email && u.password === password);
+    const foundUser = users.find((u: any) => u.email === sanitizedEmail);
     
-    if (foundUser) {
+    if (foundUser && await verifyPassword(password, foundUser.password)) {
+      // Clear rate limit on successful login
+      clearRateLimit(email);
+      
+      // Create session
+      const sessionToken = generateSessionToken();
+      const sessionData: SessionData = {
+        userId: foundUser.id,
+        token: sessionToken,
+        loginTime: new Date().toISOString(),
+        lastActivity: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString() // 8 hours
+      };
+      
       const { password: _, ...userWithoutPassword } = foundUser;
       setUser(userWithoutPassword);
+      setSessionData(sessionData);
       localStorage.setItem('roadease_current_user', JSON.stringify(userWithoutPassword));
+      localStorage.setItem('roadease_session', JSON.stringify(sessionData));
+      
+      // Log security event
+      logSecurityEvent({
+        type: 'login',
+        userId: foundUser.id,
+        username: foundUser.email,
+        details: 'Successful login'
+      });
+      
       setIsLoading(false);
       return true;
+    } else {
+      // Log failed login attempt
+      logSecurityEvent({
+        type: 'failed_login',
+        username: sanitizedEmail,
+        details: `Failed login attempt. Remaining attempts: ${rateLimit.remainingAttempts - 1}`
+      });
     }
     
     setIsLoading(false);
@@ -187,17 +291,58 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginWithEmployeeId = async (employeeId: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     
+    // Check rate limiting
+    const rateLimit = checkRateLimit(employeeId, 5, 15);
+    if (!rateLimit.allowed) {
+      const resetTime = rateLimit.resetTime?.toLocaleTimeString('ar-SA') || 'قريباً';
+      alert(`تم تجاوز عدد محاولات تسجيل الدخول. حاول مرة أخرى في: ${resetTime}`);
+      setIsLoading(false);
+      return false;
+    }
+    
     await new Promise(resolve => setTimeout(resolve, 1000));
     
+    const sanitizedEmployeeId = sanitizeInput(employeeId);
     const users = JSON.parse(localStorage.getItem('roadease_users') || '[]');
-    const foundUser = users.find((u: any) => u.employeeId === employeeId && u.password === password);
+    const foundUser = users.find((u: any) => u.employeeId === sanitizedEmployeeId);
     
-    if (foundUser) {
+    if (foundUser && await verifyPassword(password, foundUser.password)) {
+      // Clear rate limit on successful login
+      clearRateLimit(employeeId);
+      
+      // Create session
+      const sessionToken = generateSessionToken();
+      const sessionData: SessionData = {
+        userId: foundUser.id,
+        token: sessionToken,
+        loginTime: new Date().toISOString(),
+        lastActivity: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString() // 8 hours
+      };
+      
       const { password: _, ...userWithoutPassword } = foundUser;
       setUser(userWithoutPassword);
+      setSessionData(sessionData);
       localStorage.setItem('roadease_current_user', JSON.stringify(userWithoutPassword));
+      localStorage.setItem('roadease_session', JSON.stringify(sessionData));
+      
+      // Log security event
+      logSecurityEvent({
+        type: 'login',
+        userId: foundUser.id,
+        username: foundUser.email,
+        details: 'Successful login with employee ID'
+      });
+      
       setIsLoading(false);
       return true;
+    } else {
+      // Log failed login attempt
+      logSecurityEvent({
+        type: 'failed_login',
+        username: sanitizedEmployeeId,
+        details: `Failed login attempt with employee ID. Remaining attempts: ${rateLimit.remainingAttempts - 1}`
+      });
     }
     
     setIsLoading(false);
@@ -255,8 +400,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
+    // Log security event
+    if (user) {
+      logSecurityEvent({
+        type: 'logout',
+        userId: user.id,
+        username: user.email,
+        details: 'User logout'
+      });
+    }
+    
     setUser(null);
+    setSessionData(null);
     localStorage.removeItem('roadease_current_user');
+    localStorage.removeItem('roadease_session');
   };
 
   return (

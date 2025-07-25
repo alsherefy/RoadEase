@@ -202,6 +202,26 @@ export interface PayrollRecord {
   createdAt: Date;
 }
 
+// Security and Audit Types
+export interface SecurityEvent {
+  id: string;
+  type: 'login' | 'logout' | 'failed_login' | 'password_change' | 'data_access' | 'permission_denied';
+  userId?: string;
+  username?: string;
+  timestamp: Date;
+  ipAddress?: string;
+  userAgent?: string;
+  details?: string;
+}
+
+export interface SessionData {
+  userId: string;
+  token: string;
+  loginTime: string;
+  lastActivity: string;
+  expiresAt: string;
+}
+
 // Financial Forecast Types
 export interface FinancialForecast {
   currentPeriod: {

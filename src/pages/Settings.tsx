@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
-import { Save, Upload, Palette, Globe, FileText, DollarSign } from 'lucide-react';
+import { Save, Upload, Palette, Globe, FileText, DollarSign, Shield, Eye, Download } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useApp } from '../contexts/AppContext';
 import { useAuth } from '../contexts/AuthContext';
+import { getSecurityLogs } from '../utils/security';
 import { Card, CardHeader, CardContent, CardTitle } from '../components/UI/Card';
 import Button from '../components/UI/Button';
 import Input from '../components/UI/Input';
 import Select from '../components/UI/Select';
+import Modal from '../components/UI/Modal';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/UI/Table';
 
 const Settings: React.FC = () => {
   const { t, language, setLanguage } = useLanguage();
@@ -15,6 +18,8 @@ const Settings: React.FC = () => {
   
   const [settingsForm, setSettingsForm] = useState(settings);
   const [activeTab, setActiveTab] = useState('general');
+  const [isSecurityModalOpen, setIsSecurityModalOpen] = useState(false);
+  const [securityLogs, setSecurityLogs] = useState(getSecurityLogs());
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,11 +39,38 @@ const Settings: React.FC = () => {
     }
   };
 
+  const handleViewSecurityLogs = () => {
+    setSecurityLogs(getSecurityLogs());
+    setIsSecurityModalOpen(true);
+  };
+
+  const exportSecurityLogs = () => {
+    const logs = getSecurityLogs();
+    const csvContent = [
+      ['التاريخ', 'النوع', 'المستخدم', 'التفاصيل', 'عنوان IP', 'المتصفح'],
+      ...logs.map(log => [
+        new Date(log.timestamp).toLocaleString('ar-SA'),
+        log.type,
+        log.username || 'غير محدد',
+        log.details || '',
+        log.ipAddress || 'غير محدد',
+        log.userAgent || 'غير محدد'
+      ])
+    ].map(row => row.join(',')).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `security-logs-${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+  };
+
   const tabs = [
     { id: 'general', label: 'عام', icon: Globe },
     { id: 'appearance', label: 'المظهر', icon: Palette },
     { id: 'invoice', label: 'الفواتير', icon: FileText },
-    { id: 'financial', label: 'المالية', icon: DollarSign }
+    { id: 'financial', label: 'المالية', icon: DollarSign },
+    { id: 'security', label: 'الأمان', icon: Shield }
   ];
 
   // Only admins can access settings
@@ -414,9 +446,170 @@ const Settings: React.FC = () => {
                 </CardContent>
               </Card>
             )}
+
+            {activeTab === 'security' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>إعدادات الأمان</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Security Overview */}
+                    <div className="space-y-4">
+                      <h4 className="font-medium text-gray-900">نظرة عامة على الأمان</h4>
+                      
+                      <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                        <div className="flex items-center mb-2">
+                          <Shield className="h-5 w-5 text-green-600 mr-2" />
+                          <span className="font-medium text-green-900">الميزات المفعلة</span>
+                        </div>
+                        <ul className="text-sm text-green-800 space-y-1">
+                          <li>✓ تشفير كلمات المرور (SHA-256)</li>
+                          <li>✓ جلسات آمنة مع انتهاء صلاحية</li>
+                          <li>✓ حماية من التكرار (Rate Limiting)</li>
+                          <li>✓ سجل أمني شامل</li>
+                          <li>✓ تنظيف المدخلات (Input Sanitization)</li>
+                          <li>✓ صلاحيات متعددة المستويات</li>
+                        </ul>
+                      </div>
+                      
+                      <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                        <div className="flex items-center mb-2">
+                          <Eye className="h-5 w-5 text-blue-600 mr-2" />
+                          <span className="font-medium text-blue-900">معلومات الجلسة</span>
+                        </div>
+                        <div className="text-sm text-blue-800 space-y-1">
+                          <p>مدة الجلسة: 8 ساعات</p>
+                          <p>محاولات الدخول المسموحة: 5 محاولات</p>
+                          <p>فترة القفل: 15 دقيقة</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Security Actions */}
+                    <div className="space-y-4">
+                      <h4 className="font-medium text-gray-900">إجراءات الأمان</h4>
+                      
+                      <div className="space-y-3">
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          icon={Eye}
+                          onClick={handleViewSecurityLogs}
+                          className="w-full"
+                        >
+                          عرض سجل الأمان
+                        </Button>
+                        
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          icon={Download}
+                          onClick={exportSecurityLogs}
+                          className="w-full"
+                        >
+                          تصدير سجل الأمان
+                        </Button>
+                      </div>
+                      
+                      <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                        <div className="flex items-center mb-2">
+                          <Shield className="h-5 w-5 text-yellow-600 mr-2" />
+                          <span className="font-medium text-yellow-900">توصيات إضافية</span>
+                        </div>
+                        <ul className="text-sm text-yellow-800 space-y-1">
+                          <li>• استخدم كلمات مرور قوية</li>
+                          <li>• قم بتغيير كلمات المرور دورياً</li>
+                          <li>• راجع سجل الأمان بانتظام</li>
+                          <li>• لا تشارك بيانات تسجيل الدخول</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </form>
         </div>
       </div>
+
+      {/* Security Logs Modal */}
+      <Modal
+        isOpen={isSecurityModalOpen}
+        onClose={() => setIsSecurityModalOpen(false)}
+        title="سجل الأمان"
+        size="xl"
+      >
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-gray-600">
+              إجمالي السجلات: {securityLogs.length}
+            </p>
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              icon={Download}
+              onClick={exportSecurityLogs}
+            >
+              تصدير CSV
+            </Button>
+          </div>
+          
+          <div className="max-h-96 overflow-y-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>التاريخ والوقت</TableHead>
+                  <TableHead>النوع</TableHead>
+                  <TableHead>المستخدم</TableHead>
+                  <TableHead>التفاصيل</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {securityLogs.slice().reverse().slice(0, 50).map((log) => (
+                  <TableRow key={log.id}>
+                    <TableCell>
+                      <div className="text-sm">
+                        <div>{new Date(log.timestamp).toLocaleDateString('ar-SA')}</div>
+                        <div className="text-gray-500">{new Date(log.timestamp).toLocaleTimeString('ar-SA')}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        log.type === 'login' ? 'bg-green-100 text-green-800' :
+                        log.type === 'logout' ? 'bg-blue-100 text-blue-800' :
+                        log.type === 'failed_login' ? 'bg-red-100 text-red-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {log.type === 'login' ? 'دخول' :
+                         log.type === 'logout' ? 'خروج' :
+                         log.type === 'failed_login' ? 'فشل دخول' :
+                         log.type === 'password_change' ? 'تغيير كلمة مرور' :
+                         log.type}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {log.username || 'غير محدد'}
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm text-gray-600">
+                        {log.details}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            
+            {securityLogs.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                لا توجد سجلات أمنية متاحة
+              </div>
+            )}
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

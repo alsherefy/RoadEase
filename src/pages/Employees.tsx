@@ -3,6 +3,7 @@ import { Plus, Edit, Trash2, User, Shield, Clock, Key, Settings as SettingsIcon,
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { User as UserType, UserPermissions, Allowance } from '../types';
+import { validatePasswordStrength, sanitizeInput, generateEmployeeId as secureGenerateEmployeeId, hashPassword } from '../utils/security';
 import { Card, CardHeader, CardContent, CardTitle } from '../components/UI/Card';
 import Button from '../components/UI/Button';
 import Modal from '../components/UI/Modal';
@@ -35,6 +36,12 @@ const Employees: React.FC = () => {
     role: 'employee' as 'admin' | 'employee',
     phone: '',
     permissions: getDefaultPermissions('employee')
+  });
+
+  const [passwordValidation, setPasswordValidation] = useState<{ isValid: boolean; errors: string[]; score: number }>({ 
+    isValid: true, 
+    errors: [], 
+    score: 0 
   });
 
   const [permissionsForm, setPermissionsForm] = useState<UserPermissions>(getDefaultPermissions('employee'));
@@ -83,9 +90,8 @@ const Employees: React.FC = () => {
     const existingIds = employees
       .map(emp => emp.employeeId)
       .filter(id => id && typeof id === 'string' && id.startsWith('EMP-'));
-    const numbers = existingIds.map(id => parseInt(id.split('-')[1])).filter(num => !isNaN(num));
-    const nextNumber = numbers.length > 0 ? Math.max(...numbers) + 1 : 1;
-    return `EMP-${nextNumber.toString().padStart(3, '0')}`;
+    
+    return secureGenerateEmployeeId(existingIds);
   }
 
   const filteredEmployees = employees.filter(employee => {
@@ -143,43 +149,112 @@ const Employees: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate form inputs
+    if (!employeeForm.name.trim() || !employeeForm.email.trim()) {
+      alert('جميع الحقول المطلوبة يجب ملؤها');
+      return;
+    }
+    
+    // Validate password for new employees
+    if (!editingEmployee && !passwordValidation.isValid) {
+      alert('كلمة المرور لا تلبي متطلبات الأمان:\n' + passwordValidation.errors.join('\n'));
+      return;
+    }
+    
+    // Check for duplicate email
+    const existingEmployee = employees.find(emp => 
+      emp.email === employeeForm.email && emp.id !== editingEmployee?.id
+    );
+    if (existingEmployee) {
+      alert('البريد الإلكتروني مستخدم بالفعل');
+      return;
+    }
+    
     if (editingEmployee) {
+      const updateData: any = {
+        name: sanitizeInput(employeeForm.name),
+        email: sanitizeInput(employeeForm.email),
+        role: employeeForm.role,
+        phone: sanitizeInput(employeeForm.phone || ''),
+        permissions: employeeForm.permissions
+      };
+      
+      // Only update password if provided
+      if (employeeForm.password) {
+        hashPassword(employeeForm.password).then(hashedPassword => {
+          updateData.password = hashedPassword;
+          updateEmployee(updateData);
+        });
+      } else {
+        updateEmployee(updateData);
+      }
+    } else {
+      // Hash password for new employee
+      hashPassword(employeeForm.password).then(hashedPassword => {
+        const newEmployee: UserType = {
+          id: Math.random().toString(36).substr(2, 9),
+          employeeId: generateEmployeeId(),
+          name: sanitizeInput(employeeForm.name),
+          email: sanitizeInput(employeeForm.email),
+          role: employeeForm.role,
+          phone: sanitizeInput(employeeForm.phone || ''),
+          permissions: employeeForm.permissions,
+          createdAt: new Date()
+        };
+        
+        const updatedEmployees = [...employees, newEmployee];
+        setEmployees(updatedEmployees);
+        
+        // Also save with password for login
+        const usersWithPassword = JSON.parse(localStorage.getItem('roadease_users') || '[]');
+        usersWithPassword.push({ ...newEmployee, password: hashedPassword });
+        localStorage.setItem('roadease_users', JSON.stringify(usersWithPassword));
+        
+        completeSubmission();
+      });
+      return; // Exit early since we're handling async
+    }
+    
+    function updateEmployee(updateData: any) {
       const updatedEmployees = employees.map(emp => 
         emp.id === editingEmployee.id 
-          ? { 
-              ...emp, 
-              name: employeeForm.name,
-              email: employeeForm.email,
-              role: employeeForm.role,
-              phone: employeeForm.phone,
-              permissions: employeeForm.permissions,
-              ...(employeeForm.password && { password: employeeForm.password })
-            }
+          ? { ...emp, ...updateData }
           : emp
       );
       setEmployees(updatedEmployees);
       localStorage.setItem('roadease_users', JSON.stringify(updatedEmployees));
-    } else {
-      const newEmployee: UserType = {
-        id: Math.random().toString(36).substr(2, 9),
-        employeeId: generateEmployeeId(),
-        name: employeeForm.name,
-        email: employeeForm.email,
-        role: employeeForm.role,
-        phone: employeeForm.phone,
-        permissions: employeeForm.permissions,
-        createdAt: new Date()
-      };
-      
-      const updatedEmployees = [...employees, newEmployee];
-      setEmployees(updatedEmployees);
-      
-      // Also save with password for login
-      const usersWithPassword = JSON.parse(localStorage.getItem('roadease_users') || '[]');
-      usersWithPassword.push({ ...newEmployee, password: employeeForm.password });
-      localStorage.setItem('roadease_users', JSON.stringify(usersWithPassword));
+      completeSubmission();
     }
     
+    function completeSubmission() {
+      setIsModalOpen(false);
+      resetForm();
+      setEditingEmployee(null);
+      setPasswordValidation({ isValid: true, errors: [], score: 0 });
+    }
+  };
+
+  const handlePasswordChange = (password: string) => {
+    setEmployeeForm({ ...employeeForm, password });
+    
+    if (password.length > 0) {
+      const validation = validatePasswordStrength(password);
+      setPasswordValidation(validation);
+    } else {
+      setPasswordValidation({ isValid: true, errors: [], score: 0 });
+    }
+  };
+
+  const getPasswordStrengthColor = (score: number) => {
+    if (score < 40) return 'bg-red-500';
+    if (score < 70) return 'bg-yellow-500';
+    return 'bg-green-500';
+  };
+
+  const getPasswordStrengthText = (score: number) => {
+    if (score < 40) return 'ضعيف';
+    if (score < 70) return 'متوسط';
+    return 'قوي';
     setIsModalOpen(false);
     resetForm();
     setEditingEmployee(null);
@@ -518,10 +593,40 @@ const Employees: React.FC = () => {
               <Input
                 type="password"
                 value={employeeForm.password}
-                onChange={(e) => setEmployeeForm({ ...employeeForm, password: e.target.value })}
+                onChange={(e) => handlePasswordChange(e.target.value)}
                 placeholder={editingEmployee ? 'اتركها فارغة للاحتفاظ بالحالية' : ''}
                 required={!editingEmployee}
               />
+              
+              {/* Password strength indicator */}
+              {employeeForm.password.length > 0 && !editingEmployee && (
+                <div className="mt-2 p-3 bg-gray-50 rounded-md">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-medium text-gray-700">قوة كلمة المرور:</span>
+                    <span className={`text-xs font-bold ${
+                      passwordValidation.score < 40 ? 'text-red-600' :
+                      passwordValidation.score < 70 ? 'text-yellow-600' : 'text-green-600'
+                    }`}>
+                      {getPasswordStrengthText(passwordValidation.score)}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                    <div 
+                      className={`h-2 rounded-full transition-all duration-300 ${getPasswordStrengthColor(passwordValidation.score)}`}
+                      style={{ width: `${passwordValidation.score}%` }}
+                    />
+                  </div>
+                  {passwordValidation.errors.length > 0 && (
+                    <div className="space-y-1">
+                      {passwordValidation.errors.map((error, index) => (
+                        <div key={index} className="text-xs text-red-600">
+                          • {error}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             
             <div>

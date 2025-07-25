@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { Car, User, Lock, Mail } from 'lucide-react';
+import { Car, User, Lock, Mail, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { validatePasswordStrength } from '../utils/security';
 import Button from '../components/UI/Button';
 import Input from '../components/UI/Input';
 
@@ -15,6 +16,11 @@ const Setup: React.FC = () => {
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [passwordValidation, setPasswordValidation] = useState<{ isValid: boolean; errors: string[]; score: number }>({ 
+    isValid: true, 
+    errors: [], 
+    score: 0 
+  });
   
   const { user, setupInitialAdmin } = useAuth();
 
@@ -39,8 +45,8 @@ const Setup: React.FC = () => {
       return;
     }
     
-    if (adminForm.password.length < 4) {
-      setError('كلمة المرور يجب أن تكون 4 أحرف على الأقل');
+    if (!passwordValidation.isValid) {
+      setError('كلمة المرور لا تلبي متطلبات الأمان');
       return;
     }
     
@@ -69,6 +75,29 @@ const Setup: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handlePasswordChange = (password: string) => {
+    setAdminForm({ ...adminForm, password });
+    
+    if (password.length > 0) {
+      const validation = validatePasswordStrength(password);
+      setPasswordValidation(validation);
+    } else {
+      setPasswordValidation({ isValid: true, errors: [], score: 0 });
+    }
+  };
+
+  const getPasswordStrengthColor = (score: number) => {
+    if (score < 40) return 'bg-red-500';
+    if (score < 70) return 'bg-yellow-500';
+    return 'bg-green-500';
+  };
+
+  const getPasswordStrengthText = (score: number) => {
+    if (score < 40) return 'ضعيف';
+    if (score < 70) return 'متوسط';
+    return 'قوي';
   };
 
   return (
@@ -148,12 +177,43 @@ const Setup: React.FC = () => {
                   id="password"
                   type="password"
                   value={adminForm.password}
-                  onChange={(e) => setAdminForm({ ...adminForm, password: e.target.value })}
+                  onChange={(e) => handlePasswordChange(e.target.value)}
                   placeholder="أدخل كلمة مرور قوية"
                   className="pl-10"
                   required
                 />
               </div>
+              
+              {/* Password strength indicator */}
+              {adminForm.password.length > 0 && (
+                <div className="mt-2 p-3 bg-gray-50 rounded-md">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-medium text-gray-700">قوة كلمة المرور:</span>
+                    <span className={`text-xs font-bold ${
+                      passwordValidation.score < 40 ? 'text-red-600' :
+                      passwordValidation.score < 70 ? 'text-yellow-600' : 'text-green-600'
+                    }`}>
+                      {getPasswordStrengthText(passwordValidation.score)}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                    <div 
+                      className={`h-2 rounded-full transition-all duration-300 ${getPasswordStrengthColor(passwordValidation.score)}`}
+                      style={{ width: `${passwordValidation.score}%` }}
+                    />
+                  </div>
+                  {passwordValidation.errors.length > 0 && (
+                    <div className="space-y-1">
+                      {passwordValidation.errors.map((error, index) => (
+                        <div key={index} className="flex items-center text-xs text-red-600">
+                          <AlertTriangle className="h-3 w-3 mr-1" />
+                          {error}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div>
