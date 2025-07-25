@@ -6,6 +6,7 @@ import { AppProvider } from './contexts/AppContext';
 import { useAuth } from './contexts/AuthContext';
 
 import Login from './pages/Login';
+import Setup from './pages/Setup';
 import Dashboard from './pages/Dashboard';
 import Customers from './pages/Customers';
 import ServiceOrders from './pages/ServiceOrders';
@@ -21,6 +22,12 @@ import Layout from './components/Layout/Layout';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isLoading } = useAuth();
+  
+  // Check if initial setup is needed
+  const existingUsers = JSON.parse(localStorage.getItem('roadease_users') || '[]');
+  if (existingUsers.length === 0) {
+    return <Navigate to="/setup" replace />;
+  }
 
   if (isLoading) {
     return (
@@ -43,6 +50,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 function AppRoutes() {
   return (
     <Routes>
+      <Route path="/setup" element={<Setup />} />
       <Route path="/login" element={<Login />} />
       <Route path="/dashboard" element={
         <ProtectedRoute>

@@ -23,6 +23,12 @@ const Login: React.FC = () => {
   const { user, login, loginWithEmployeeId, requestPasswordReset, resetPassword, isLoading } = useAuth();
   const { t, language, setLanguage } = useLanguage();
 
+  // Check if initial setup is needed
+  const existingUsers = JSON.parse(localStorage.getItem('roadease_users') || '[]');
+  if (existingUsers.length === 0) {
+    return <Navigate to="/setup" replace />;
+  }
+
   if (user && !isLoading) {
     return <Navigate to="/dashboard" replace />;
   }
@@ -129,7 +135,7 @@ const Login: React.FC = () => {
                 type={loginType === 'email' ? 'email' : 'text'}
                 value={emailOrId}
                 onChange={(e) => setEmailOrId(e.target.value)}
-                placeholder={loginType === 'email' ? 'admin@roadease.com' : 'ADM-001'}
+                placeholder={loginType === 'email' ? 'أدخل اسم المستخدم' : 'أدخل رقم الموظف'}
                 required
               />
             </div>
@@ -144,7 +150,7 @@ const Login: React.FC = () => {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="admin123"
+                  placeholder="أدخل كلمة المرور"
                   required
                 />
                 <button

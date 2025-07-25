@@ -3,6 +3,7 @@ import { User, UserPermissions } from '../types';
 
 interface AuthContextType {
   user: User | null;
+  setupInitialAdmin: (adminData: { name: string; email: string; username: string; password: string }) => Promise<boolean>;
   login: (email: string, password: string) => Promise<boolean>;
   loginWithEmployeeId: (employeeId: string, password: string) => Promise<boolean>;
   logout: () => void;
@@ -59,24 +60,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Initialize default users if not exist
+  // Check for existing users on mount
   useEffect(() => {
     const users = localStorage.getItem('roadease_users');
-    if (!users) {
-      const defaultUsers = [
-        {
-          id: '1',
-          employeeId: 'ADMIN',
-          name: 'المدير العام',
-          email: 'admin',
-          password: 'admin',
-          role: 'admin' as const,
-          permissions: getDefaultPermissions('admin'),
-          createdAt: new Date(),
-        }
-      ];
-      localStorage.setItem('roadease_users', JSON.stringify(defaultUsers));
-    } else {
+    
+    if (users) {
       const existingUsers = JSON.parse(users);
       let updated = false;
       
@@ -133,6 +121,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     setIsLoading(false);
   }, []);
+
+  const setupInitialAdmin = async (adminData: { name: string; email: string; username: string; password: string }): Promise<boolean> => {
+    setIsLoading(true);
+    
+    // Check if any users already exist
+    const existingUsers = JSON.parse(localStorage.getItem('roadease_users') || '[]');
+    if (existingUsers.length > 0) {
+      setIsLoading(false);
+      return false;
+    }
+    
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    try {
+      const newAdmin: User = {
+        id: '1',
+        employeeId: 'ADMIN-001',
+        name: adminData.name,
+        email: adminData.username, // Use username as email for login
+        role: 'admin',
+        phone: '',
+        permissions: getDefaultPermissions('admin'),
+        createdAt: new Date(),
+      };
+      
+      // Save admin with password
+      const adminWithPassword = { ...newAdmin, password: adminData.password };
+      localStorage.setItem('roadease_users', JSON.stringify([adminWithPassword]));
+      
+      // Set current user (without password)
+      setUser(newAdmin);
+      localStorage.setItem('roadease_current_user', JSON.stringify(newAdmin));
+      
+      setIsLoading(false);
+      return true;
+    } catch (error) {
+      setIsLoading(false);
+      return false;
+    }
+  };
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
@@ -233,6 +262,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <AuthContext.Provider value={{ 
       user, 
+      setupInitialAdmin,
       login, 
       loginWithEmployeeId, 
       logout, 
