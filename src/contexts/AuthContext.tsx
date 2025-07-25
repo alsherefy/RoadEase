@@ -16,10 +16,9 @@ import {
 interface AuthContextType {
   user: User | null;
   setupInitialAdmin: (adminData: { name: string; email: string; username: string; password: string }) => Promise<boolean>;
-  login: (email: string, password: string) => Promise<boolean>;
-  loginWithEmployeeId: (employeeId: string, password: string) => Promise<boolean>;
+  login: (identifier: string, password: string) => Promise<boolean>;
   logout: () => void;
-  requestPasswordReset: (employeeId: string, email: string) => Promise<boolean>;
+  requestPasswordReset: (username: string, contact: string, contactType: 'email' | 'phone') => Promise<boolean>;
   resetPassword: (token: string, newPassword: string) => Promise<boolean>;
   isLoading: boolean;
 }
@@ -226,11 +225,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const login = async (username: string, password: string): Promise<boolean> => {
+  const login = async (identifier: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     
     // Check rate limiting
-    const rateLimit = checkRateLimit(username, 5, 15);
+    const rateLimit = checkRateLimit(identifier, 5, 15);
     if (!rateLimit.allowed) {
       const resetTime = rateLimit.resetTime?.toLocaleTimeString('ar-SA') || 'قريباً';
       alert(`تم تجاوز عدد محاولات تسجيل الدخول. حاول مرة أخرى في: ${resetTime}`);
@@ -241,13 +240,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    const sanitizedUsername = sanitizeInput(username);
+    const sanitizedIdentifier = sanitizeInput(identifier);
     const users = JSON.parse(localStorage.getItem('roadease_users') || '[]');
-    const foundUser = users.find((u: any) => u.username === sanitizedUsername);
+    const foundUser = users.find((u: any) => 
+      u.username === sanitizedIdentifier || 
+      u.email === sanitizedIdentifier || 
+      u.employeeId === sanitizedIdentifier
+    );
     
     if (foundUser && await verifyPassword(password, foundUser.password)) {
       // Clear rate limit on successful login
-      clearRateLimit(username);
+      clearRateLimit(identifier);
       
       // Create session
       const sessionToken = generateSessionToken();
@@ -269,7 +272,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       logSecurityEvent({
         type: 'login',
         userId: foundUser.id,
-        username: foundUser.username,
+        username: foundUser.username || foundUser.email,
         details: 'Successful login'
       });
       
@@ -279,7 +282,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Log failed login attempt
       logSecurityEvent({
         type: 'failed_login',
-        username: sanitizedUsername,
+        username: sanitizedIdentifier,
         details: `Failed login attempt. Remaining attempts: ${rateLimit.remainingAttempts - 1}`
       });
     }

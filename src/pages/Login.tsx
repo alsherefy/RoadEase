@@ -9,7 +9,7 @@ import Input from '../components/UI/Input';
 import Modal from '../components/UI/Modal';
 
 const Login: React.FC = () => {
-  const [username, setUsername] = useState('');
+  const [emailOrId, setEmailOrId] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -46,13 +46,7 @@ const Login: React.FC = () => {
       return;
     }
     
-    let success = false;
-    
-    if (loginType === 'email') {
-      success = await login(emailOrId, password);
-    } else {
-      success = await loginWithEmployeeId(emailOrId, password);
-    }
+    const success = await login(emailOrId, password);
     
     if (!success) {
       setError('بيانات الدخول غير صحيحة');
@@ -129,45 +123,17 @@ const Login: React.FC = () => {
             </div>
           </div>
 
-          {/* Login Type Toggle */}
-          <div className="flex justify-center mb-6">
-            <div className="bg-gray-100 p-1 rounded-lg flex">
-              <button
-                type="button"
-                onClick={() => setLoginType('email')}
-                className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
-                  loginType === 'email'
-                    ? 'bg-orange-600 text-white'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                البريد الإلكتروني
-              </button>
-              <button
-                type="button"
-                onClick={() => setLoginType('employeeId')}
-                className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
-                  loginType === 'employeeId'
-                    ? 'bg-orange-600 text-white'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                رقم الموظف
-              </button>
-            </div>
-          </div>
-
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="emailOrId" className="block text-sm font-medium text-gray-700 mb-2">
-                {loginType === 'email' ? 'البريد الإلكتروني' : 'رقم الموظف'}
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+                اسم المستخدم
               </label>
               <Input
-                id="emailOrId"
-                type={loginType === 'email' ? 'email' : 'text'}
+                id="username"
+                type="text"
                 value={emailOrId}
                 onChange={(e) => setEmailOrId(e.target.value)}
-                placeholder={loginType === 'email' ? 'أدخل اسم المستخدم' : 'أدخل رقم الموظف'}
+                placeholder="أدخل اسم المستخدم"
                 required
               />
             </div>
@@ -281,8 +247,9 @@ const Login: React.FC = () => {
         onClose={() => {
           setIsResetModalOpen(false);
           setResetStep('request');
-          setResetEmployeeId('');
+          setResetUsername('');
           setResetEmail('');
+          setResetPhone('');
           setResetToken('');
           setNewPassword('');
         }}
@@ -292,21 +259,50 @@ const Login: React.FC = () => {
           <form onSubmit={handlePasswordReset} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                رقم الموظف
+                اسم المستخدم
               </label>
               <div className="relative">
                 <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   type="text"
-                  value={resetEmployeeId}
-                  onChange={(e) => setResetEmployeeId(e.target.value)}
-                  placeholder="EMP-001"
+                  value={resetUsername}
+                  onChange={(e) => setResetUsername(e.target.value)}
+                  placeholder="أدخل اسم المستخدم"
                   className="pl-10"
                   required
                 />
               </div>
             </div>
             
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                نوع جهة الاتصال
+              </label>
+              <div className="flex space-x-4">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    value="email"
+                    checked={resetContactType === 'email'}
+                    onChange={(e) => setResetContactType(e.target.value as 'email' | 'phone')}
+                    className="mr-2"
+                  />
+                  البريد الإلكتروني
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    value="phone"
+                    checked={resetContactType === 'phone'}
+                    onChange={(e) => setResetContactType(e.target.value as 'email' | 'phone')}
+                    className="mr-2"
+                  />
+                  رقم الجوال
+                </label>
+              </div>
+            </div>
+            
+            {resetContactType === 'email' ? (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 البريد الإلكتروني المسجل
@@ -323,10 +319,28 @@ const Login: React.FC = () => {
                 />
               </div>
             </div>
+            ) : (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                رقم الجوال المسجل
+              </label>
+              <div className="relative">
+                <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  type="tel"
+                  value={resetPhone}
+                  onChange={(e) => setResetPhone(e.target.value)}
+                  placeholder="05xxxxxxxx"
+                  className="pl-10"
+                  required
+                />
+              </div>
+            </div>
+            )}
             
             <div className="bg-blue-50 p-3 rounded-md">
               <p className="text-sm text-blue-800">
-                سيتم إرسال رابط إعادة تعيين كلمة المرور إلى البريد الإلكتروني المسجل
+                سيتم إرسال رابط إعادة تعيين كلمة المرور إلى {resetContactType === 'email' ? 'البريد الإلكتروني' : 'رقم الجوال'} المسجل
               </p>
             </div>
             
