@@ -54,7 +54,6 @@ const translations = {
     login: 'تسجيل الدخول',
     password: 'كلمة المرور',
     loginTitle: 'مرحباً بك في ROAD EASE',
-    loginSubtitle: 'نظام إدارة ورشة السيارات',
     invalidCredentials: 'بيانات الدخول غير صحيحة',
     
     // Dashboard
@@ -191,7 +190,6 @@ const translations = {
     login: 'Login',
     password: 'Password',
     loginTitle: 'Welcome to ROAD EASE',
-    loginSubtitle: 'Workshop Management System',
     invalidCredentials: 'Invalid credentials',
     
     // Dashboard

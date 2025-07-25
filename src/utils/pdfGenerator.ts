@@ -338,7 +338,6 @@ const createInvoiceHTML = async (invoice: Invoice, customer: Customer, settings:
         <!-- Header -->
         <div class="header">
           <h1>${settings.workshopName}</h1>
-          <div class="subtitle">نظام إدارة ورشة السيارات المتكامل</div>
           <div class="contact-info">
             ${settings.phone ? `هاتف: ${settings.phone}<br>` : ''}
             ${settings.email ? `بريد إلكتروني: ${settings.email}<br>` : ''}

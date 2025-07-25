@@ -71,7 +71,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             </div>
             <div>
               <h1 className="text-lg font-bold">ROAD EASE</h1>
-              <p className="text-xs text-gray-300 hidden lg:block">إدارة الورشة</p>
             </div>
           </div>
           

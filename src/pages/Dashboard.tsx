@@ -114,7 +114,6 @@ const Dashboard: React.FC = () => {
           </div>
           <div>
             <h1 className="text-lg font-bold">مرحباً، {user?.name}</h1>
-            <p className="text-orange-100 text-xs">نظام إدارة ورشة السيارات</p>
           </div>
         </div>
         <div className="hidden md:flex items-center space-x-4 space-x-reverse text-orange-100 text-xs">

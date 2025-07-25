@@ -85,7 +85,6 @@ const Login: React.FC = () => {
               <Car className="h-12 w-12 text-orange-500" />
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">ROAD EASE</h1>
-            <p className="text-gray-600 mt-2 text-sm sm:text-base">{t('loginSubtitle')}</p>
             
             <div className="flex justify-center mt-4">
               <button
