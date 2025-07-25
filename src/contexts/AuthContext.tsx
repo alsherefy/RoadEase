@@ -66,45 +66,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const defaultUsers = [
         {
           id: '1',
-          employeeId: 'ADM-001',
-          name: 'مدير النظام',
-          email: 'admin@roadease.com',
-          password: 'admin123',
+          employeeId: 'ADMIN',
+          name: 'المدير العام',
+          email: 'admin',
+          password: 'admin',
           role: 'admin' as const,
           permissions: getDefaultPermissions('admin'),
-          createdAt: new Date(),
-        },
-        {
-          id: '2',
-          employeeId: 'EMP-001',
-          name: 'موظف الاستقبال',
-          email: 'employee@roadease.com',
-          password: 'emp123',
-          role: 'employee' as const,
-          permissions: getDefaultPermissions('employee'),
-          createdAt: new Date(),
-        },
-        {
-          id: '3',
-          employeeId: 'TECH-001',
-          name: 'فني الصيانة',
-          email: 'tech@roadease.com',
-          password: 'tech123',
-          role: 'employee' as const,
-          permissions: {
-            customers: false,
-            serviceOrders: true,
-            inventory: false,
-            invoices: false,
-            expenses: false,
-            reports: false,
-            employees: false,
-            settings: false,
-            financialReports: false,
-            profitAnalysis: false,
-            payroll: false,
-            workshopRent: false,
-          },
           createdAt: new Date(),
         }
       ];
@@ -114,7 +81,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       let updated = false;
       
       existingUsers.forEach((user: any) => {
-        if (user.email === 'admin@roadease.com' || user.employeeId === 'ADM-001') {
+        if (user.email === 'admin' || user.employeeId === 'ADMIN') {
           if (user.role !== 'admin') {
             user.role = 'admin';
             updated = true;
@@ -139,9 +106,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const currentUser = JSON.parse(savedUser);
       
       // Always re-verify user data from storage to ensure it's up to date
-      if (currentUser.email === 'admin@roadease.com' || currentUser.employeeId === 'ADM-001') {
+      if (currentUser.email === 'admin' || currentUser.employeeId === 'ADMIN') {
         const allUsers = JSON.parse(localStorage.getItem('roadease_users') || '[]');
-        const adminUser = allUsers.find((u: any) => u.email === 'admin@roadease.com' || u.employeeId === 'ADM-001');
+        const adminUser = allUsers.find((u: any) => u.email === 'admin' || u.employeeId === 'ADMIN');
         
         if (adminUser) {
           const { password: _, ...adminWithoutPassword } = adminUser;

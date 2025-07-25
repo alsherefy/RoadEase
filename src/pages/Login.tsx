@@ -188,10 +188,10 @@ const Login: React.FC = () => {
           </div>
 
           <div className="mt-6 sm:mt-8 p-3 sm:p-4 bg-gray-50 rounded-lg">
-            <h3 className="font-medium text-gray-900 mb-2">حسابات تجريبية:</h3>
+            <h3 className="font-medium text-gray-900 mb-2">حساب المدير:</h3>
             <div className="text-xs sm:text-sm text-gray-600 space-y-1">
-              <p>مدير: admin@roadease.com أو ADM-001 / admin123</p>
-              <p>موظف: employee@roadease.com أو EMP-001 / emp123</p>
+              <p>المدير: admin / admin</p>
+              <p>يمكنك تغيير كلمة المرور من الإعدادات</p>
             </div>
           </div>
         </div>
